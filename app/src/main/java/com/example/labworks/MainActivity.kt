@@ -69,7 +69,11 @@ class MainActivity : AppCompatActivity() {
             ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.POST_NOTIFICATIONS), requestCode)
             return
         }
-        println("trying to launch notif")
-        NotificationManagerCompat.from(this).notify(notificationId, builder.build())
+        else{
+            println("trying to launch notif")
+            NotificationManagerCompat.from(this).notify(notificationId, builder.build())
+            val intent = Intent(this, MainActivity2::class.java)
+            startActivity(intent)
+        }
     }
 }
