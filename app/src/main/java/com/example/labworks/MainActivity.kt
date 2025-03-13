@@ -65,12 +65,11 @@ class MainActivity : AppCompatActivity() {
     private fun throwNotification(notificationId : Int, builder : NotificationCompat.Builder){
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS)
             != PackageManager.PERMISSION_GRANTED) {
+            var requestCode = 1
+            ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.POST_NOTIFICATIONS), requestCode)
             return
         }
+        println("trying to launch notif")
         NotificationManagerCompat.from(this).notify(notificationId, builder.build())
-    }
-
-    private fun getNotificationBuilder(contentIntent : PendingIntent ,title : String = "blank", text : String = "blank", icon : Int = R.drawable.ic_launcher_background){
-
     }
 }
