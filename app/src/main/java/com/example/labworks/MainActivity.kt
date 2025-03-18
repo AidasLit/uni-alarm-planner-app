@@ -46,13 +46,13 @@ class MainActivity : AppCompatActivity() {
         val builder = NotificationCompat.Builder(this, CHANNEL_ID)
             .setSmallIcon(R.drawable.ic_launcher_background)
             .setContentTitle("Counter maxed out")
-            .setContentText("The counter reached it's maximum number - 10")
+            .setContentText("The counter reached it's maximum number - 11")
             .setPriority(NotificationCompat.PRIORITY_DEFAULT)
             .setContentIntent(pendingIntent)
             .setAutoCancel(true)
 
         button.setOnClickListener{
-            if(counterNumber < 10) {
+            if(counterNumber < 11) {
                 counterNumber++
                 counter.text = counterNumber.toString()
             }
