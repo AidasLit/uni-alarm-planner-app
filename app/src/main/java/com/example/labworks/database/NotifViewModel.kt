@@ -4,6 +4,7 @@ import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.viewModelScope
+import com.example.labworks.database.data.Notif
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
