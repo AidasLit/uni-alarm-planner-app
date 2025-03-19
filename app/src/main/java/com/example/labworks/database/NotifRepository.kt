@@ -1,20 +1,18 @@
 package com.example.labworks.database
 
 import androidx.lifecycle.LiveData
+import com.example.labworks.database.data.ComponentType
 import com.example.labworks.database.data.Notif
 import com.example.labworks.database.data.NotifComponent
-import com.example.labworks.database.data.NotifComponentDao
 import com.example.labworks.database.data.NotifDao
+import com.example.labworks.database.data.components.ComponentDao
 import com.example.labworks.database.data.components.DescriptionComp
-import com.example.labworks.database.data.components.DescriptionDao
-import com.example.labworks.database.data.components.SoundDao
+import kotlinx.serialization.json.Json
 
 // Class that abstracts DAO usage
 class NotifRepository(
     private val notifDao: NotifDao,
-    private val notifComponentDao: NotifComponentDao,
-    private val descriptionDao: DescriptionDao,
-    private val soundDao: SoundDao
+    private val componentDao: ComponentDao
 ) {
 
     val readAllData: LiveData<List<Notif>> = notifDao.getAllNotifs()
@@ -24,17 +22,17 @@ class NotifRepository(
     }
 
     suspend fun addDescriptionComponent(notif: Notif){
-        val descriptionComp = DescriptionComp()
-        descriptionDao.upsertDescription(descriptionComp)
-
-        val notifComponent = NotifComponent(
-            title = "Description",
-            ownerId = notif.id,
-            descriptionComp.id
+        val tempDescription = DescriptionComp(
+            description = "my description"
         )
 
-        notifComponentDao.upsertComponent(notifComponent)
-        notif.comps += notifComponent
-        notifDao.upsertNotif(notif)
+        val tempComp : NotifComponent = NotifComponent(
+            title = "Description",
+            dataType = ComponentType.DESCRIPTION,
+            ownerId =  notif.id,
+            Json.encodeToString(tempDescription)
+        )
+
+        componentDao.upsertComponent(tempComp)
     }
 }

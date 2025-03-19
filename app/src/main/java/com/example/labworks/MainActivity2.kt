@@ -8,9 +8,8 @@ import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
-import androidx.lifecycle.ViewModelProvider
-import com.example.labworks.database.data.Notif
 import com.example.labworks.database.NotifViewModel
+import com.example.labworks.database.data.Notif
 
 class MainActivity2 : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -29,7 +28,7 @@ class MainActivity2 : AppCompatActivity() {
 
         button.setOnClickListener{
             val tempNotif : Notif = Notif("my Notif yippie")
-
+            tempNotif.id = 1
             databaseViewModel.addNotif(tempNotif)
 
             val intent = Intent(this, MainActivity::class.java)
