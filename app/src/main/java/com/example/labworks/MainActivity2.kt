@@ -4,6 +4,7 @@ import android.content.Intent
 import android.os.Bundle
 import android.widget.Button
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
@@ -23,11 +24,11 @@ class MainActivity2 : AppCompatActivity() {
         }
 
         val button : Button = findViewById(R.id.button2)
-        val databaseViewModel : NotifViewModel = ViewModelProvider(this)[NotifViewModel::class]
-        //val databaseViewModel by viewModels<NotifViewModel>()
+        //val databaseViewModel : NotifViewModel = ViewModelProvider(this)[NotifViewModel::class]
+        val databaseViewModel by viewModels<NotifViewModel>()
 
         button.setOnClickListener{
-            val tempNotif : Notif = Notif(0, "bruh", "more bruh")
+            val tempNotif : Notif = Notif("my Notif yippie")
 
             databaseViewModel.addNotif(tempNotif)
 

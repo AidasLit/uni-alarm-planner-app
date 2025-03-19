@@ -14,12 +14,14 @@ import kotlinx.coroutines.launch
 class NotifViewModel(application: Application) : AndroidViewModel(application) {
 
     private val readAllData: LiveData<List<Notif>>
-    private val repository: NotifRepository
+    private val repository: NotifRepository = NotifRepository(
+        NotifDatabase.getDatabase(application).notifDao(),
+        NotifDatabase.getDatabase(application).notifComponentDao(),
+        NotifDatabase.getDatabase(application).descriptionDao(),
+        NotifDatabase.getDatabase(application).soundDao()
+    )
 
     init {
-        val notifDao = NotifDatabase.getDatabase(application).notifDao()
-
-        repository = NotifRepository(notifDao)
         readAllData = repository.readAllData
     }
 
