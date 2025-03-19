@@ -71,7 +71,7 @@ class MainActivity : AppCompatActivity() {
         else{
             println("trying to launch notif")
             NotificationManagerCompat.from(this).notify(notificationId, builder.build())
-            val intent = Intent(this, MainActivity2::class.java)
+            val intent = Intent(this, MainActivity3::class.java)
             startActivity(intent)
         }
     }

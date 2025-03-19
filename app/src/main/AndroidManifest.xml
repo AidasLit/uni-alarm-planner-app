@@ -15,6 +15,9 @@
         android:theme="@style/Theme.LabWorks"
         tools:targetApi="31">
         <activity
+            android:name=".MainActivity3"
+            android:exported="false" />
+        <activity
             android:name=".NotifManage"
             android:exported="false" />
         <activity
