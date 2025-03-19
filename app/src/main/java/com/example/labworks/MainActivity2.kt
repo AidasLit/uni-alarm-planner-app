@@ -4,9 +4,13 @@ import android.content.Intent
 import android.os.Bundle
 import android.widget.Button
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
+import androidx.lifecycle.ViewModelProvider
+import com.example.labworks.database.Notif
+import com.example.labworks.database.NotifViewModel
 
 class MainActivity2 : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -20,8 +24,14 @@ class MainActivity2 : AppCompatActivity() {
         }
 
         val button : Button = findViewById(R.id.button2)
+        val databaseViewModel : NotifViewModel = ViewModelProvider(this)[NotifViewModel::class]
+        //val databaseViewModel by viewModels<NotifViewModel>()
 
         button.setOnClickListener{
+            val tempNotif : Notif = Notif(0, "bruh", "more bruh")
+
+            databaseViewModel.addNotif(tempNotif)
+
             val intent = Intent(this, MainActivity::class.java)
             startActivity(intent)
         }
