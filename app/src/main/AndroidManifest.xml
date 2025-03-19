@@ -15,6 +15,21 @@
         android:theme="@style/Theme.LabWorks"
         tools:targetApi="31">
         <activity
+            android:name=".settings.AppSettingsDateTime"
+            android:exported="false" />
+        <activity
+            android:name=".settings.AppSettingsAlarmSound"
+            android:exported="false" />
+        <activity
+            android:name=".settings.AppSettingsAbout"
+            android:exported="false" />
+        <activity
+            android:name=".settings.AppSettingsPrivacy"
+            android:exported="false" />
+        <activity
+            android:name=".settings.AppSettings"
+            android:exported="false" />
+        <activity
             android:name=".MainActivity3"
             android:exported="false" />
         <activity

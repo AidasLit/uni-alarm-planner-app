@@ -13,6 +13,7 @@ import android.widget.TextView
 import androidx.core.app.ActivityCompat
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
+import com.example.labworks.settings.AppSettings
 
 class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -25,6 +26,8 @@ class MainActivity : AppCompatActivity() {
 
         var counterNumber = 0
         counter.text = counterNumber.toString()
+
+        val button_settings : Button = findViewById(R.id.button10)
 
         // Create the NotificationChannel.
         val name = "Main"
@@ -59,6 +62,11 @@ class MainActivity : AppCompatActivity() {
                 throwNotification(1, builder)
             }
         }
+        button_settings.setOnClickListener{
+            val intent = Intent(this, AppSettings::class.java)
+            startActivity(intent)
+        }
+
     }
 
     private fun throwNotification(notificationId : Int, builder : NotificationCompat.Builder){
