@@ -4,7 +4,9 @@ import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.viewModelScope
+import com.example.labworks.database.data.Notif
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.android.awaitFrame
 import kotlinx.coroutines.launch
 
 // ViewModel for database access. A ViewModel is for separation of data and UI logic
@@ -13,18 +15,20 @@ import kotlinx.coroutines.launch
 class NotifViewModel(application: Application) : AndroidViewModel(application) {
 
     private val readAllData: LiveData<List<Notif>>
-    private val repository: NotifRepository
+    private val repository: NotifRepository = NotifRepository(
+        NotifDatabase.getDatabase(application).notifDao(),
+        NotifDatabase.getDatabase(application).componentDao()
+    )
 
     init {
-        val notifDao = NotifDatabase.getDatabase(application).notifDao()
-
-        repository = NotifRepository(notifDao)
         readAllData = repository.readAllData
     }
 
     fun addNotif(notif: Notif){
          viewModelScope.launch(Dispatchers.IO) {
              repository.addNotif(notif)
+
+             repository.addDescriptionComponent(notif)
          }
     }
 

@@ -1,4 +1,4 @@
-package com.example.labworks.database
+package com.example.labworks.database.data
 
 import androidx.lifecycle.LiveData
 import androidx.room.Dao

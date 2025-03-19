@@ -4,14 +4,20 @@ import android.content.Context
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
+import com.example.labworks.database.data.Notif
+import com.example.labworks.database.data.NotifComponent
+import com.example.labworks.database.data.NotifDao
+import com.example.labworks.database.data.components.ComponentDao
 
 // Export schema left at true, should be needed later down the line
 @Database(entities = [
-    Notif::class
-], version = 1)
+    Notif::class,
+    NotifComponent::class
+], version = 1, exportSchema = false)
 abstract class NotifDatabase : RoomDatabase() {
 
     abstract fun notifDao() : NotifDao
+    abstract fun componentDao() : ComponentDao
 
     companion object{
         @Volatile
