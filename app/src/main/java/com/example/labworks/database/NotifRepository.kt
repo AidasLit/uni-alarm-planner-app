@@ -21,7 +21,7 @@ class NotifRepository(
         notifDao.upsertNotif(notif)
     }
 
-    suspend fun addDescriptionComponent(notif: Notif){
+    suspend fun addDescriptionComponent(notif: Notif) : Notif{
         val tempDescription = DescriptionComp(
             description = "my description"
         )
@@ -34,5 +34,6 @@ class NotifRepository(
         )
 
         componentDao.upsertComponent(tempComp)
+        return notifDao.getNotif(1)
     }
 }

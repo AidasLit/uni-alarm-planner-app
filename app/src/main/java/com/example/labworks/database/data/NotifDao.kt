@@ -16,6 +16,9 @@ interface NotifDao {
     @Query("SELECT * FROM notifs ORDER BY title ASC")
     fun getAllNotifs(): LiveData<List<Notif>>
 
+    @Query("SELECT * FROM notifs WHERE id = :id")
+    fun getNotif(id : Int): Notif
+
     @Delete
     suspend fun deleteNotif(notif: Notif)
 }

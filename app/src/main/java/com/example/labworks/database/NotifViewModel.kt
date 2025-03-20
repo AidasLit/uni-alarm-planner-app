@@ -20,6 +20,8 @@ class NotifViewModel(application: Application) : AndroidViewModel(application) {
         NotifDatabase.getDatabase(application).componentDao()
     )
 
+    val myNotif : Notif = Notif("temp")
+
     init {
         readAllData = repository.readAllData
     }
@@ -28,7 +30,7 @@ class NotifViewModel(application: Application) : AndroidViewModel(application) {
          viewModelScope.launch(Dispatchers.IO) {
              repository.addNotif(notif)
 
-             repository.addDescriptionComponent(notif)
+             val myNotif = repository.addDescriptionComponent(notif)
          }
     }
 

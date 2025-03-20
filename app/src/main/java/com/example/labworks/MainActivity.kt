@@ -24,10 +24,7 @@ class MainActivity : AppCompatActivity() {
 
         val CHANNEL_ID = "0"
         val button : Button = findViewById(R.id.button)
-        val counter : TextView = findViewById(R.id.textView)
 
-        var counterNumber = 0
-        counter.text = counterNumber.toString()
 
         val button_settings : Button = findViewById(R.id.button10)
 
@@ -56,13 +53,7 @@ class MainActivity : AppCompatActivity() {
             .setAutoCancel(true)
 
         button.setOnClickListener{
-            if(counterNumber < 3) {
-                counterNumber++
-                counter.text = counterNumber.toString()
-            }
-            else{
                 throwNotification(1, builder)
-            }
         }
         button_settings.setOnClickListener{
             val intent = Intent(this, AppSettings::class.java)

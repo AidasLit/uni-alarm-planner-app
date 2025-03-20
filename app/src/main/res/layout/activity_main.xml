@@ -4,58 +4,41 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:backgroundTintMode="add"
     android:background="@color/your_background_color"
+    android:backgroundTintMode="add"
     tools:context=".MainActivity">
 
     <Button
         android:id="@+id/button"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_marginStart="108dp"
+        android:layout_marginEnd="109dp"
+        android:layout_marginBottom="24dp"
         android:backgroundTint="@color/button_color_custom"
-        android:text="Incriment counter"
-        app:layout_constraintBottom_toBottomOf="parent"
+        android:text="Create notification"
+        app:layout_constraintBottom_toTopOf="@+id/button10"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.541"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.893" />
-
-    <TextView
-        android:id="@+id/textView"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="182dp"
-        android:layout_marginTop="33dp"
-        android:layout_marginEnd="171dp"
-        android:layout_marginBottom="15dp"
-        android:scaleX="2"
-        android:scaleY="2"
-        android:text="TextView"
-        android:textColor="@android:color/holo_red_dark"
-        app:layout_constraintBottom_toTopOf="@+id/button"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/calendarView" />
+        app:layout_constraintStart_toStartOf="parent" />
 
     <Button
         android:id="@+id/button10"
         android:layout_width="64dp"
         android:layout_height="47dp"
+        android:layout_marginStart="173dp"
+        android:layout_marginEnd="174dp"
+        android:layout_marginBottom="60dp"
+        android:backgroundTint="@color/button_color_custom"
         app:icon="@android:drawable/ic_menu_manage"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.524"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.976"
-        android:backgroundTint="@color/button_color_custom"/>
+        app:layout_constraintStart_toStartOf="parent" />
 
     <android.widget.CalendarView
         android:id="@+id/calendarView"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="188dp"
+        android:layout_marginTop="32dp"
         android:background="#354876"
         android:backgroundTint="#DB7777"
         android:elevation="50dp"
@@ -67,16 +50,14 @@
         android:scaleY="1"
         android:showWeekNumber="false"
         app:guidelineUseRtl="false"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.0"
-        app:layout_constraintStart_toStartOf="parent" />
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/calendarTitle" />
 
     <TextView
         android:id="@+id/calendarTitle"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_margin="16dp"
+        android:layout_marginTop="120dp"
         android:background="@color/button_color_custom"
         android:gravity="center"
         android:padding="8dp"
@@ -84,8 +65,8 @@
         android:textColor="@android:color/holo_red_dark"
         android:textSize="24sp"
         android:textStyle="bold"
-        tools:layout_editor_absoluteX="16dp"
-        tools:layout_editor_absoluteY="112dp" />
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
 
 
 </androidx.constraintlayout.widget.ConstraintLayout>
