@@ -8,18 +8,18 @@
     tools:context=".MainActivity3">
 
 
-    <CalendarView
+    <android.widget.CalendarView
         android:id="@+id/calendarView"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_alignParentTop="true"
-        android:layout_centerHorizontal="true"
-        android:layout_gravity="center"
-        android:layout_marginTop="137dp"
-        android:layout_marginBottom="223dp"
-        android:background="#ffffff"
+        android:layout_marginTop="122dp"
+        android:layout_marginBottom="239dp"
+        android:background="#7FFFD4"
         android:elevation="4dp"
+        android:focusable="true"
+        android:focusableInTouchMode="true"
         android:padding="8dp"
+        android:showWeekNumber="false"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
@@ -43,6 +43,6 @@
         app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.0" />
+        app:layout_constraintVertical_bias="0.129" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
