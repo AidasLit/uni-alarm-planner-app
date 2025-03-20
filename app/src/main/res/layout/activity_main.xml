@@ -4,28 +4,39 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:backgroundTintMode="add"
+    android:background="@color/your_background_color"
     tools:context=".MainActivity">
 
     <Button
         android:id="@+id/button"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:backgroundTint="@color/button_color_custom"
         android:text="Incriment counter"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.541"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.893" />
 
     <TextView
         android:id="@+id/textView"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="160dp"
+        android:layout_marginStart="182dp"
+        android:layout_marginTop="33dp"
+        android:layout_marginEnd="171dp"
+        android:layout_marginBottom="15dp"
+        android:scaleX="2"
+        android:scaleY="2"
         android:text="TextView"
+        android:textColor="@android:color/holo_red_dark"
+        app:layout_constraintBottom_toTopOf="@+id/button"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.498"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toBottomOf="@+id/calendarView" />
 
     <Button
         android:id="@+id/button10"
@@ -34,9 +45,47 @@
         app:icon="@android:drawable/ic_menu_manage"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.507"
+        app:layout_constraintHorizontal_bias="0.524"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.763" />
+        app:layout_constraintVertical_bias="0.976"
+        android:backgroundTint="@color/button_color_custom"/>
+
+    <android.widget.CalendarView
+        android:id="@+id/calendarView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="188dp"
+        android:background="#354876"
+        android:backgroundTint="#DB7777"
+        android:elevation="50dp"
+        android:focusable="true"
+        android:focusableInTouchMode="true"
+        android:hapticFeedbackEnabled="false"
+        android:padding="8dp"
+        android:scaleX="1"
+        android:scaleY="1"
+        android:showWeekNumber="false"
+        app:guidelineUseRtl="false"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintStart_toStartOf="parent" />
+
+    <TextView
+        android:id="@+id/calendarTitle"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="16dp"
+        android:background="@color/button_color_custom"
+        android:gravity="center"
+        android:padding="8dp"
+        android:text="Calendar"
+        android:textColor="@android:color/holo_red_dark"
+        android:textSize="24sp"
+        android:textStyle="bold"
+        tools:layout_editor_absoluteX="16dp"
+        tools:layout_editor_absoluteY="112dp" />
+
 
 </androidx.constraintlayout.widget.ConstraintLayout>

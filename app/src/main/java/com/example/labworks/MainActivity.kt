@@ -9,7 +9,9 @@ import android.content.pm.PackageManager
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.widget.Button
+import android.widget.CalendarView
 import android.widget.TextView
+import android.widget.Toast
 import androidx.core.app.ActivityCompat
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
@@ -48,13 +50,13 @@ class MainActivity : AppCompatActivity() {
         val builder = NotificationCompat.Builder(this, CHANNEL_ID)
             .setSmallIcon(R.drawable.ic_launcher_background)
             .setContentTitle("Counter maxed out")
-            .setContentText("The counter reached it's maximum number - 10")
+            .setContentText("The counter reached it's maximum number - 3")
             .setPriority(NotificationCompat.PRIORITY_DEFAULT)
             .setContentIntent(pendingIntent)
             .setAutoCancel(true)
 
         button.setOnClickListener{
-            if(counterNumber < 10) {
+            if(counterNumber < 3) {
                 counterNumber++
                 counter.text = counterNumber.toString()
             }
@@ -65,6 +67,13 @@ class MainActivity : AppCompatActivity() {
         button_settings.setOnClickListener{
             val intent = Intent(this, AppSettings::class.java)
             startActivity(intent)
+        }
+
+
+        val calendarView = findViewById<CalendarView>(R.id.calendarView)
+        calendarView.setOnDateChangeListener { view, year, month, dayOfMonth ->
+            val selectedDate = "$dayOfMonth/${month + 1}/$year"
+            Toast.makeText(this, "Pasirinkta data: $selectedDate", Toast.LENGTH_SHORT).show()
         }
 
     }
@@ -83,4 +92,6 @@ class MainActivity : AppCompatActivity() {
             startActivity(intent)
         }
     }
+
+
 }
