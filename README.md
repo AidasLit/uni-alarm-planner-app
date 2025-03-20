@@ -23,6 +23,9 @@ to create a new branch in remote from a current new branch
 remove all changes that arent pushed
 `git reset --hard origin`
 
+locally delete branch (only do after branch is gone from remote)
+`git branch -d blank`
+
 # Common workflow
 
 I've done some work, I'd like to save it.
