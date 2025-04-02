@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">LabWorks</string>
+    <string name="title_activity_notif_manage">NotifManage</string>
 </resources>
