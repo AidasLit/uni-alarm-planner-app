@@ -20,21 +20,6 @@
             android:label="@string/title_activity_notif_manage"
             android:theme="@style/Theme.LabWorks" />
         <activity
-            android:name=".settings.AppSettingsDateTime"
-            android:exported="false" />
-        <activity
-            android:name=".settings.AppSettingsAlarmSound"
-            android:exported="false" />
-        <activity
-            android:name=".settings.AppSettingsAbout"
-            android:exported="false" />
-        <activity
-            android:name=".settings.AppSettingsPrivacy"
-            android:exported="false" />
-        <activity
-            android:name=".settings.AppSettings"
-            android:exported="false" />
-        <activity
             android:name=".MainActivity3"
             android:exported="false" />
         <activity

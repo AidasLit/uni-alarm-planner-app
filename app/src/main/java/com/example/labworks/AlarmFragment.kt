@@ -15,6 +15,6 @@ class AlarmFragment: Fragment() {
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        return inflater.inflate(R.layout.month_calendar_fragment, container, false)
+        return inflater.inflate(R.layout.alarm_fragment, container, false)
     }
 }
