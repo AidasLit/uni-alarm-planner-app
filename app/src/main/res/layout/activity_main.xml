@@ -8,65 +8,26 @@
     android:backgroundTintMode="add"
     tools:context=".MainActivity">
 
-    <Button
-        android:id="@+id/button"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="108dp"
-        android:layout_marginEnd="109dp"
-        android:layout_marginBottom="24dp"
-        android:backgroundTint="@color/button_color_custom"
-        android:text="Create notification"
-        app:layout_constraintBottom_toTopOf="@+id/button10"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent" />
-
-    <Button
-        android:id="@+id/button10"
-        android:layout_width="64dp"
-        android:layout_height="47dp"
-        android:layout_marginStart="173dp"
-        android:layout_marginEnd="174dp"
-        android:layout_marginBottom="60dp"
-        android:backgroundTint="@color/button_color_custom"
-        app:icon="@android:drawable/ic_menu_manage"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent" />
-
-    <android.widget.CalendarView
-        android:id="@+id/calendarView"
+    <RelativeLayout
+        android:id="@+id/relativeLayout"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="32dp"
-        android:background="#354876"
-        android:backgroundTint="#DB7777"
-        android:elevation="50dp"
-        android:focusable="true"
-        android:focusableInTouchMode="true"
-        android:hapticFeedbackEnabled="false"
-        android:padding="8dp"
-        android:scaleX="1"
-        android:scaleY="1"
-        android:showWeekNumber="false"
-        app:guidelineUseRtl="false"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/calendarTitle" />
+        android:layout_height="match_parent">
 
-    <TextView
-        android:id="@+id/calendarTitle"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="120dp"
-        android:background="@color/button_color_custom"
-        android:gravity="center"
-        android:padding="8dp"
-        android:text="Calendar"
-        android:textColor="@android:color/holo_red_dark"
-        android:textSize="24sp"
-        android:textStyle="bold"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        <FrameLayout
+            android:id="@+id/fragment_container"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_above="@id/bottom_navigation">
+
+        </FrameLayout>
+
+        <com.google.android.material.bottomnavigation.BottomNavigationView
+            android:id="@+id/bottom_navigation"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_alignParentBottom="true"
+            app:menu="@menu/bottom_nav_menu" />
+    </RelativeLayout>
 
 
 </androidx.constraintlayout.widget.ConstraintLayout>

@@ -10,12 +10,11 @@ import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.widget.Button
 import android.widget.CalendarView
-import android.widget.TextView
 import android.widget.Toast
 import androidx.core.app.ActivityCompat
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
-import com.example.labworks.settings.AppSettings
+import com.google.android.material.bottomnavigation.BottomNavigationView
 
 class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -23,10 +22,7 @@ class MainActivity : AppCompatActivity() {
         setContentView(R.layout.activity_main)
 
         val CHANNEL_ID = "0"
-        val button : Button = findViewById(R.id.button)
 
-
-        val button_settings : Button = findViewById(R.id.button10)
 
         // Create the NotificationChannel.
         val name = "Main"
@@ -52,21 +48,46 @@ class MainActivity : AppCompatActivity() {
             .setContentIntent(pendingIntent)
             .setAutoCancel(true)
 
-        button.setOnClickListener{
-                throwNotification(1, builder)
-        }
-        button_settings.setOnClickListener{
-            val intent = Intent(this, AppSettings::class.java)
-            startActivity(intent)
-        }
 
 
-        val calendarView = findViewById<CalendarView>(R.id.calendarView)
-        calendarView.setOnDateChangeListener { view, year, month, dayOfMonth ->
-            val selectedDate = "$dayOfMonth/${month + 1}/$year"
-            Toast.makeText(this, "Pasirinkta data: $selectedDate", Toast.LENGTH_SHORT).show()
-        }
+        val navView: BottomNavigationView = findViewById(R.id.bottom_navigation)
 
+        navView.setOnItemSelectedListener { item ->
+            when (item.itemId) {
+                R.id.nav_month_calendar -> {
+                    supportFragmentManager.beginTransaction()
+                        .replace(R.id.fragment_container, MonthCalendarFragment())
+                        .commit()
+                    true
+                }
+                R.id.nav_week_calandar -> {
+                    supportFragmentManager.beginTransaction()
+                        .replace(R.id.fragment_container, WeekCalendarFragment())
+                        .commit()
+                    true
+                }
+                R.id.nav_alarm -> {
+                    supportFragmentManager.beginTransaction()
+                        .replace(R.id.fragment_container, AlarmFragment())
+                        .commit()
+                    true
+                }
+                R.id.nav_settings -> {
+                    supportFragmentManager.beginTransaction()
+                        .replace(R.id.fragment_container, SettingsFragment())
+                        .commit()
+                    true
+                }
+                else -> false
+            }
+        }
+        if (savedInstanceState == null) {
+            supportFragmentManager.beginTransaction()
+                .replace(R.id.fragment_container, WeekCalendarFragment())
+                .commit()
+
+            navView.selectedItemId = R.id.nav_week_calandar
+        }
     }
 
     private fun throwNotification(notificationId : Int, builder : NotificationCompat.Builder){
@@ -83,6 +104,4 @@ class MainActivity : AppCompatActivity() {
             startActivity(intent)
         }
     }
-
-
 }
