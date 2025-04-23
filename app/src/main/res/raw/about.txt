@@ -1,0 +1,4 @@
+App Name: LabWorks
+Version: 1.0
+Developer: Your Name
+All rights reserved.
