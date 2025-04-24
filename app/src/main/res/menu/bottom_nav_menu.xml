@@ -6,7 +6,7 @@
         android:icon="@drawable/ic_month_calendar_foreground"/>
     <item
         android:id="@+id/nav_week_calandar"
-        android:title="Week Calandar"
+        android:title="Week Calendar"
         android:icon="@drawable/ic_week_calendar_foreground"/>
     <item
         android:id="@+id/nav_alarm"

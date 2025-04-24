@@ -1,100 +1,187 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout
+<ScrollView
     xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:orientation="vertical"
-    android:padding="16dp">
+    android:layout_height="match_parent">
 
-    <TextView
-        android:id="@+id/text_time_format_title"
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Time Format"
-        android:textStyle="bold"
-        android:textSize="18sp"
-        android:layout_marginTop="32dp" />
+        android:orientation="vertical"
+        android:padding="16dp">
 
-    <RadioGroup
-        android:id="@+id/radio_time_format"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:layout_marginTop="8dp">
-
-        <RadioButton
-            android:id="@+id/radio_12"
+        <!-- Title -->
+        <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="12-hour" />
+            android:text="Settings"
+            android:layout_gravity="center_horizontal"
+            android:textSize="24sp"
+            android:textColor="?android:textColorPrimary"
+            android:textStyle="bold"
+            android:paddingTop="30dp"
+            android:paddingBottom="16dp" />
 
-        <RadioButton
-            android:id="@+id/radio_24"
-            android:layout_width="wrap_content"
+        <!-- TIME FORMAT -->
+        <com.google.android.material.card.MaterialCardView
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="24-hour" />
-    </RadioGroup>
+            android:layout_marginBottom="16dp"
+            app:cardCornerRadius="12dp"
+            app:cardElevation="4dp">
 
-    <TextView
-        android:id="@+id/text_alarm_sound"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Alarm Sound"
-        android:textStyle="bold"
-        android:textSize="18sp"
-        android:layout_marginTop="32dp" />
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="16dp">
 
-    <Button
-        android:id="@+id/button_pick_sound"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Choose Alarm Sound" />
+                <TextView
+                    android:id="@+id/text_time_format_title"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Time Format"
+                    android:textStyle="bold"
+                    android:textColor="?android:textColorPrimary"
+                    android:textSize="18sp" />
 
-    <TextView
-        android:id="@+id/selected_sound_name"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="No sound selected"
-        android:textSize="14sp"
-        android:layout_marginTop="8dp" />
+                <RadioGroup
+                    android:id="@+id/radio_time_format"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:layout_marginTop="8dp">
 
-    <TextView
-        android:id="@+id/text_ring_duration"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Alarm Ring Duration"
-        android:textStyle="bold"
-        android:textSize="18sp"
-        android:layout_marginTop="32dp" />
+                    <RadioButton
+                        android:id="@+id/radio_12"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="12-hour" />
 
-    <Spinner
-        android:id="@+id/spinner_ring_duration"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="8dp" />
+                    <RadioButton
+                        android:id="@+id/radio_24"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="24-hour" />
+                </RadioGroup>
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
 
-    <TextView
-        android:id="@+id/text_about"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="32dp"
-        android:background="?attr/selectableItemBackground"
-        android:clickable="true"
-        android:focusable="true"
-        android:padding="8dp"
-        android:text="About"
-        android:textSize="18sp"
-        android:textStyle="bold" />
+        <!-- ALARM SOUND -->
+        <com.google.android.material.card.MaterialCardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp"
+            app:cardCornerRadius="12dp"
+            app:cardElevation="4dp">
 
-    <TextView
-        android:id="@+id/text_about_details"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="App Name: LabWorks\nVersion: 1.0\nDeveloper: Your Name"
-        android:textSize="14sp"
-        android:layout_marginTop="8dp"
-        android:visibility="gone" />
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="16dp">
 
+                <TextView
+                    android:id="@+id/text_alarm_sound"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Alarm Sound"
+                    android:textColor="?android:textColorPrimary"
+                    android:textStyle="bold"
+                    android:textSize="18sp" />
 
+                <Button
+                    android:id="@+id/button_pick_sound"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Choose Alarm Sound"
+                    android:layout_marginTop="8dp" />
 
-</LinearLayout>
+                <TextView
+                    android:id="@+id/selected_sound_name"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="No sound selected"
+                    android:textColor="?android:textColorPrimary"
+                    android:textSize="14sp"
+                    android:layout_marginTop="8dp" />
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+
+        <!-- RING DURATION -->
+        <com.google.android.material.card.MaterialCardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp"
+            app:cardCornerRadius="12dp"
+            app:cardElevation="4dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="16dp">
+
+                <TextView
+                    android:id="@+id/text_ring_duration"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Alarm Ring Duration"
+                    android:textColor="?android:textColorPrimary"
+                    android:textStyle="bold"
+                    android:textSize="18sp" />
+
+                <Spinner
+                    android:id="@+id/spinner_ring_duration"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp" />
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+
+        <!-- ABOUT -->
+        <com.google.android.material.card.MaterialCardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp"
+            app:cardCornerRadius="12dp"
+            app:cardElevation="4dp">
+
+            <TextView
+                android:id="@+id/text_about"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="?attr/selectableItemBackground"
+                android:clickable="true"
+                android:focusable="true"
+                android:padding="16dp"
+                android:textColor="?android:textColorPrimary"
+                android:text="About"
+                android:textSize="18sp"
+                android:textStyle="bold" />
+        </com.google.android.material.card.MaterialCardView>
+
+        <com.google.android.material.card.MaterialCardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp"
+            app:cardCornerRadius="12dp"
+            app:cardElevation="4dp">
+
+            <TextView
+                android:id="@+id/text_privacy"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="?attr/selectableItemBackground"
+                android:clickable="true"
+                android:focusable="true"
+                android:padding="16dp"
+                android:textColor="?android:textColorPrimary"
+                android:text="Privacy Policy"
+                android:textSize="18sp"
+                android:textStyle="bold" />
+        </com.google.android.material.card.MaterialCardView>
+
+    </LinearLayout>
+</ScrollView>

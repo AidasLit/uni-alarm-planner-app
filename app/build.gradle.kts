@@ -55,6 +55,7 @@ dependencies {
     implementation("androidx.room:room-ktx:2.6.1") {
         exclude(group = "com.google.guava", module = "listenablefuture")
     }
+    implementation("androidx.cardview:cardview:1.0.0")
     implementation("com.google.guava:guava:31.1-android")
     implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.8.7")
     implementation("androidx.datastore:datastore-core-android:1.1.4")
