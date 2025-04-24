@@ -11,6 +11,9 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Set Alarm"
+        android:paddingTop="30dp"
+        android:textColor="?android:textColorPrimary"
+        android:layout_gravity="center_horizontal"
         android:textSize="24sp"
         android:textStyle="bold" />
 

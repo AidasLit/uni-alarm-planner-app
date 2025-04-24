@@ -6,44 +6,64 @@
     android:orientation="vertical"
     android:padding="16dp">
 
-    <TextView
-        android:id="@+id/week_title"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Week Calendar"
-        android:textSize="24sp"
-        android:textStyle="bold" />
-
-    <!-- Example day buttons -->
+    <!-- Navigation Row -->
     <LinearLayout
+        android:id="@+id/navigation_row"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:paddingTop="30dp"
         android:orientation="horizontal"
-        android:gravity="center"
-        android:layout_marginTop="16dp"
-        android:weightSum="7">
+        android:gravity="center">
 
-        <Button android:layout_width="0dp" android:layout_height="wrap_content"
-            android:layout_weight="1" android:text="Mon" />
+        <Button
+            android:id="@+id/button_previous_week"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="←"
+            android:textSize="40dp"
+            android:paddingTop="0dp"
+            android:paddingBottom="0dp"
+            android:minHeight="2dp"
+            android:minWidth="0dp"
+            android:backgroundTint="?attr/colorPrimary" />
 
-        <Button android:layout_width="0dp" android:layout_height="wrap_content"
-            android:layout_weight="1" android:text="Tue" />
+        <TextView
+            android:id="@+id/text_current_week"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Week of ..."
+            android:textColor="@color/black"
+            android:textAlignment="center"
+            android:textSize="20sp"
+            android:textStyle="bold"
+            android:padding="8dp" />
 
-        <Button android:layout_width="0dp" android:layout_height="wrap_content"
-            android:layout_weight="1" android:text="Wed" />
-
-        <Button android:layout_width="0dp" android:layout_height="wrap_content"
-            android:layout_weight="1" android:text="Thu" />
-
-        <Button android:layout_width="0dp" android:layout_height="wrap_content"
-            android:layout_weight="1" android:text="Fri" />
-
-        <Button android:layout_width="0dp" android:layout_height="wrap_content"
-            android:layout_weight="1" android:text="Sat" />
-
-        <Button android:layout_width="0dp" android:layout_height="wrap_content"
-            android:layout_weight="1" android:text="Sun" />
-
+        <Button
+            android:id="@+id/button_next_week"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="→"
+            android:textSize="40dp"
+            android:paddingTop="0dp"
+            android:paddingBottom="0dp"
+            android:minHeight="2dp"
+            android:minWidth="0dp"
+            android:backgroundTint="?attr/colorPrimary" />
     </LinearLayout>
 
+    <!-- Week Days Row (takes up remaining space) -->
+    <LinearLayout
+        android:id="@+id/week_days_container"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:orientation="horizontal"
+        android:weightSum="7"
+        android:padding="0dp"
+        android:layout_marginTop="24dp"
+        android:divider="?android:attr/dividerHorizontal"
+        android:showDividers="none">
+        <!-- Buttons are added programmatically -->
+    </LinearLayout>
 </LinearLayout>

@@ -23,6 +23,7 @@ import java.io.InputStreamReader
 private val RINGTONE_REQUEST_CODE = 101
 private lateinit var durationSpinner: Spinner
 private lateinit var prefs: android.content.SharedPreferences
+private var isSpinnerInitialized = false
 
 class SettingsFragment : Fragment(){
 
@@ -33,7 +34,6 @@ class SettingsFragment : Fragment(){
         val view = inflater.inflate(R.layout.settings_fragment, container, false)
 
         val aboutTitle = view.findViewById<TextView>(R.id.text_about)
-        val aboutDetails = view.findViewById<TextView>(R.id.text_about_details)
 
         // Load the about.txt file from res/raw
         val inputStream = resources.openRawResource(R.raw.about)
@@ -41,12 +41,20 @@ class SettingsFragment : Fragment(){
         val aboutText = reader.readText()
         reader.close()
 
-        aboutDetails.text = aboutText
-        aboutDetails.visibility = View.GONE
-
         aboutTitle.setOnClickListener {
-            aboutDetails.visibility =
-                if (aboutDetails.visibility == View.GONE) View.VISIBLE else View.GONE
+            parentFragmentManager.beginTransaction()
+                .replace(R.id.fragment_container, AboutFragment())
+                .addToBackStack(null)
+                .commit()
+        }
+
+        val privacyText = view.findViewById<TextView>(R.id.text_privacy)
+
+        privacyText.setOnClickListener {
+            parentFragmentManager.beginTransaction()
+                .replace(R.id.fragment_container, PrivacyFragment())
+                .addToBackStack(null)
+                .commit()
         }
 
         val radioGroup = view.findViewById<RadioGroup>(R.id.radio_time_format)
@@ -103,15 +111,23 @@ class SettingsFragment : Fragment(){
         }
 
         // Save selection when changed
+
+        isSpinnerInitialized = false
+
         durationSpinner.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
             override fun onItemSelected(parent: AdapterView<*>, view: View?, position: Int, id: Long) {
-                val selectedDuration = durationValues[position]
-                prefs.edit().putInt("alarmDuration", selectedDuration).apply()
-                Toast.makeText(requireContext(), "Ring duration set to $selectedDuration seconds", Toast.LENGTH_SHORT).show()
+                if (isSpinnerInitialized) {
+                    val selectedDuration = durationValues[position]
+                    prefs.edit().putInt("alarmDuration", selectedDuration).apply()
+                    Toast.makeText(requireContext(), "Ring duration set to $selectedDuration seconds", Toast.LENGTH_SHORT).show()
+                } else {
+                    isSpinnerInitialized = true
+                }
             }
 
             override fun onNothingSelected(parent: AdapterView<*>) {}
         }
+
 
         return view
     }
