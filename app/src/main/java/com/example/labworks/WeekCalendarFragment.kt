@@ -1,6 +1,7 @@
 package com.example.labworks
 
 import android.graphics.Typeface
+import android.graphics.drawable.GradientDrawable
 import android.os.Bundle
 import android.view.*
 import android.widget.*
@@ -25,10 +26,17 @@ class WeekCalendarFragment : Fragment() {
     ): View? {
         val view = inflater.inflate(R.layout.week_calendar_fragment, container, false)
 
+        // Dar tamsesnis backgroundas visam fragmentui
+        view.setBackgroundColor(android.graphics.Color.parseColor("#121212"))
+
         weekTitle = view.findViewById(R.id.text_current_week)
         previousButton = view.findViewById(R.id.button_previous_week)
         nextButton = view.findViewById(R.id.button_next_week)
         weekContainer = view.findViewById(R.id.week_days_container)
+
+        // Previous ir Next mygtukų stilizavimas
+        styleButton(previousButton)
+        styleButton(nextButton)
 
         updateWeekView()
 
@@ -45,8 +53,15 @@ class WeekCalendarFragment : Fragment() {
         return view
     }
 
+    private fun styleButton(button: Button) {
+        val backgroundDrawable = GradientDrawable()
+        backgroundDrawable.setColor(android.graphics.Color.parseColor("#333333")) // Tamsus fonas
+        backgroundDrawable.cornerRadius = 12f
+        button.background = backgroundDrawable
+        button.setTextColor(android.graphics.Color.WHITE)
+    }
+
     private fun updateWeekView() {
-        // Start from Monday
         val weekStart = currentCalendar.clone() as Calendar
         weekStart.set(Calendar.DAY_OF_WEEK, Calendar.MONDAY)
 
@@ -71,24 +86,29 @@ class WeekCalendarFragment : Fragment() {
 
             val btn = Button(requireContext())
             val layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.MATCH_PARENT, 1f)
-            layoutParams.setMargins(0, 4, 0, 8) // optional margin between buttons
+            layoutParams.setMargins(8, 4, 8, 8) // Didesni tarpai tarp mygtukų
             btn.layoutParams = layoutParams
             btn.text = SimpleDateFormat("EEE\ndd", Locale.getDefault()).format(day.time)
             btn.textAlignment = View.TEXT_ALIGNMENT_CENTER
             btn.textSize = 16f
-            btn.setPadding(0, 4, 0, 8) // make text more centered vertically
+            btn.setPadding(0, 4, 0, 8)
 
+            val backgroundDrawable = GradientDrawable()
+            backgroundDrawable.setColor(android.graphics.Color.parseColor("#1E1E1E")) // Mygtuko fonas
+            backgroundDrawable.setStroke(3, android.graphics.Color.parseColor("#555555")) // Aiškesnis rėmelis
+            backgroundDrawable.cornerRadius = 16f
 
-            // Highlight today
+            btn.background = backgroundDrawable
+            btn.setTextColor(android.graphics.Color.WHITE)
+
             if (day.get(Calendar.YEAR) == today.get(Calendar.YEAR) &&
                 day.get(Calendar.DAY_OF_YEAR) == today.get(Calendar.DAY_OF_YEAR)) {
+                backgroundDrawable.setColor(android.graphics.Color.parseColor("#424242")) // Highlight šiandienai
                 btn.setTypeface(null, Typeface.BOLD)
-                btn.setTextColor(ContextCompat.getColor(requireContext(), android.R.color.holo_blue_dark))
             }
 
             btn.setOnClickListener {
                 Toast.makeText(requireContext(), "Clicked: ${fullFormat.format(day.time)}", Toast.LENGTH_SHORT).show()
-                // You can use this to open daily events, etc.
             }
 
             weekContainer.addView(btn)
