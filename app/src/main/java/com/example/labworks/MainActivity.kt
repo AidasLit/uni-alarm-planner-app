@@ -17,11 +17,22 @@ import androidx.core.app.NotificationManagerCompat
 import com.google.android.material.bottomnavigation.BottomNavigationView
 
 class MainActivity : AppCompatActivity() {
+    private var currentTabIndex = 0
+
+    private val tabOrder = listOf(
+        R.id.nav_month_calendar,
+        R.id.nav_week_calandar,
+        R.id.nav_alarm,
+        R.id.nav_settings
+    )
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
         val CHANNEL_ID = "0"
+
+
 
 
         // Create the NotificationChannel.
@@ -53,42 +64,42 @@ class MainActivity : AppCompatActivity() {
         val navView: BottomNavigationView = findViewById(R.id.bottom_navigation)
 
         navView.setOnItemSelectedListener { item ->
-            when (item.itemId) {
-                R.id.nav_month_calendar -> {
-                    supportFragmentManager.beginTransaction()
-                        .replace(R.id.fragment_container, MonthCalendarFragment())
-                        .commit()
-                    true
-                }
-                R.id.nav_week_calandar -> {
-                    supportFragmentManager.beginTransaction()
-                        .replace(R.id.fragment_container, WeekCalendarFragment())
-                        .commit()
-                    true
-                }
-                R.id.nav_alarm -> {
-                    supportFragmentManager.beginTransaction()
-                        .replace(R.id.fragment_container, AlarmFragment())
-                        .commit()
-                    true
-                }
-                R.id.nav_settings -> {
-                    supportFragmentManager.beginTransaction()
-                        .replace(R.id.fragment_container, SettingsFragment())
-                        .commit()
-                    true
-                }
-                else -> false
+            val newTabIndex = tabOrder.indexOf(item.itemId)
+            if (newTabIndex == -1) return@setOnItemSelectedListener false
+
+            val transaction = supportFragmentManager.beginTransaction()
+
+            // Determine animation direction
+            if (newTabIndex > currentTabIndex) {
+                transaction.setCustomAnimations(R.anim.slide_in_right, R.anim.slide_out_left)
+            } else if (newTabIndex < currentTabIndex) {
+                transaction.setCustomAnimations(R.anim.slide_in_left, R.anim.slide_out_right)
             }
+
+            currentTabIndex = newTabIndex
+
+            when (item.itemId) {
+                R.id.nav_month_calendar -> transaction.replace(R.id.fragment_container, MonthCalendarFragment())
+                R.id.nav_week_calandar -> transaction.replace(R.id.fragment_container, WeekCalendarFragment())
+                R.id.nav_alarm -> transaction.replace(R.id.fragment_container, AlarmFragment())
+                R.id.nav_settings -> transaction.replace(R.id.fragment_container, SettingsFragment())
+                else -> return@setOnItemSelectedListener false
+            }
+
+            transaction.commit()
+            true
         }
         if (savedInstanceState == null) {
             supportFragmentManager.beginTransaction()
-                .replace(R.id.fragment_container, WeekCalendarFragment())
+                .replace(R.id.fragment_container, MonthCalendarFragment())
                 .commit()
 
-            navView.selectedItemId = R.id.nav_week_calandar
+            navView.selectedItemId = R.id.nav_month_calendar
         }
+
+
     }
+
 
     private fun throwNotification(notificationId : Int, builder : NotificationCompat.Builder){
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS)

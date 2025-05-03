@@ -4,6 +4,13 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.SizeTransform
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
+import androidx.compose.animation.with
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -54,34 +61,25 @@ class MonthCalendarFragment : Fragment() {
         }
     }
 }
-
+@OptIn(androidx.compose.animation.ExperimentalAnimationApi::class)
 @Composable
 fun CustomMonthCalendar() {
     val today = remember { LocalDate.now() }
     var selectedDate by remember { mutableStateOf<LocalDate?>(null) }
     var currentMonth by remember { mutableStateOf(YearMonth.now()) }
 
-    val daysInMonth = currentMonth.lengthOfMonth()
-    val firstDayOfWeek = (currentMonth.atDay(1).dayOfWeek.value % 7)
-
-    val dates = buildList {
-        repeat(firstDayOfWeek) { add(null) } // tušti langeliai prieš mėnesio pradžią
-        for (day in 1..daysInMonth) {
-            add(LocalDate.of(currentMonth.year, currentMonth.month.value, day))
-        }
-    }
-
-    val rows = (dates.size + 6) / 7
     val screenHeight = LocalConfiguration.current.screenHeightDp.dp
     val calendarHeight = screenHeight - 200.dp
-    val cellHeight = calendarHeight / rows
+
+    val totalRows = 6
+    val cellHeight = calendarHeight / totalRows
 
     Column(
         modifier = Modifier
             .fillMaxSize()
             .padding(horizontal = 12.dp, vertical = 16.dp)
     ) {
-        // Mėnesio viršus
+        // Month header and buttons
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween,
@@ -103,7 +101,7 @@ fun CustomMonthCalendar() {
 
         Spacer(modifier = Modifier.height(8.dp))
 
-        // Savaitės dienų trumpiniai
+        // Weekday labels
         Row(Modifier.fillMaxWidth()) {
             listOf("S", "P", "A", "T", "K", "Pn", "Š").forEach {
                 Text(
@@ -118,42 +116,65 @@ fun CustomMonthCalendar() {
 
         Spacer(modifier = Modifier.height(8.dp))
 
-        // Kalendoriaus langeliai
-        LazyVerticalGrid(
-            columns = GridCells.Fixed(7),
+        // ✅ Animate only the calendar grid
+        AnimatedContent(
+            targetState = currentMonth,
+            transitionSpec = {
+                if (targetState > initialState) {
+                    slideInHorizontally { width -> width } + fadeIn() with
+                            slideOutHorizontally { width -> -width } + fadeOut()
+                } else {
+                    slideInHorizontally { width -> -width } + fadeIn() with
+                            slideOutHorizontally { width -> width } + fadeOut()
+                }.using(SizeTransform(clip = false))
+            },
             modifier = Modifier
                 .fillMaxWidth()
-                .height(cellHeight * rows),
-            userScrollEnabled = false
-        ) {
-            items(dates.size) { index ->
-                val date = dates[index]
-                val isSelected = date == selectedDate
-                val isToday = date == today
+                .height(cellHeight * totalRows)
+        ) { animatedMonth ->
 
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(cellHeight)
-                        .border(BorderStroke(0.5.dp, Color.DarkGray))
-                        .background(
-                            when {
-                                isSelected -> Color(0xFF3F51B5)
-                                isToday -> Color(0xFF424242)
-                                else -> Color(0xFF1E1E1E)
-                            }
+            val firstDayOffset = (animatedMonth.atDay(1).dayOfWeek.value % 7)
+            val dates = buildList {
+                repeat(firstDayOffset) { add(null) }
+                for (day in 1..animatedMonth.lengthOfMonth()) {
+                    add(LocalDate.of(animatedMonth.year, animatedMonth.monthValue, day))
+                }
+            }
+
+            LazyVerticalGrid(
+                columns = GridCells.Fixed(7),
+                userScrollEnabled = false,
+                modifier = Modifier.fillMaxSize()
+            ) {
+                items(dates.size) { index ->
+                    val date = dates[index]
+                    val isSelected = date == selectedDate
+                    val isToday = date == today
+
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(cellHeight)
+                            .border(BorderStroke(0.5.dp, Color.DarkGray))
+                            .background(
+                                when {
+                                    isSelected -> Color(0xFF3F51B5)
+                                    isToday -> Color(0xFF424242)
+                                    else -> Color(0xFF1E1E1E)
+                                }
+                            )
+                            .clickable {
+                                if (date != null) selectedDate = date
+                            },
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = date?.dayOfMonth?.toString() ?: "",
+                            color = Color.White,
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 16.sp
                         )
-                        .clickable {
-                            if (date != null) selectedDate = date
-                        },
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text(
-                        text = date?.dayOfMonth?.toString() ?: "",
-                        color = Color.White,
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 16.sp
-                    )
+                    }
                 }
             }
         }
