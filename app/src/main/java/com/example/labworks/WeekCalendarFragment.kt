@@ -42,13 +42,15 @@ class WeekCalendarFragment : Fragment() {
 
         previousButton.setOnClickListener {
             currentCalendar.add(Calendar.WEEK_OF_YEAR, -1)
-            updateWeekView()
+            animateWeekChange(R.anim.slide_in_left, R.anim.slide_out_right) {}
         }
+
 
         nextButton.setOnClickListener {
             currentCalendar.add(Calendar.WEEK_OF_YEAR, 1)
-            updateWeekView()
+            animateWeekChange(R.anim.slide_in_right, R.anim.slide_out_left) {}
         }
+
 
         return view
     }
@@ -113,5 +115,23 @@ class WeekCalendarFragment : Fragment() {
 
             weekContainer.addView(btn)
         }
+
     }
+    private fun animateWeekChange(enterAnim: Int, exitAnim: Int, onAnimationEnd: () -> Unit) {
+        val exitAnimation = android.view.animation.AnimationUtils.loadAnimation(requireContext(), exitAnim)
+        val enterAnimation = android.view.animation.AnimationUtils.loadAnimation(requireContext(), enterAnim)
+
+        exitAnimation.setAnimationListener(object : android.view.animation.Animation.AnimationListener {
+            override fun onAnimationStart(animation: android.view.animation.Animation?) {}
+            override fun onAnimationEnd(animation: android.view.animation.Animation?) {
+                // Update content after old view slides out
+                updateWeekView()
+                weekContainer.startAnimation(enterAnimation)
+            }
+            override fun onAnimationRepeat(animation: android.view.animation.Animation?) {}
+        })
+
+        weekContainer.startAnimation(exitAnimation)
+    }
+
 }

@@ -25,9 +25,20 @@ import android.view.animation.AccelerateDecelerateInterpolator
 import android.view.animation.LinearInterpolator
 
 class MainActivity : AppCompatActivity() {
+juokav-anim
+    private var currentTabIndex = 0
+
+    private val tabOrder = listOf(
+        R.id.nav_month_calendar,
+        R.id.nav_week_calandar,
+        R.id.nav_alarm,
+        R.id.nav_settings
+    )
+
 
     private lateinit var compassArrow: ImageView
     private var currentDegree = 0f
+master
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -39,6 +50,15 @@ class MainActivity : AppCompatActivity() {
         trySetupCompass()
 
 
+ juokav-anim
+
+
+        // Create the NotificationChannel.
+        val name = "Main"
+        val descriptionText = "Main channel used for app notifications"
+        val importance = NotificationManager.IMPORTANCE_DEFAULT
+
+master
 
 
     }
@@ -61,6 +81,32 @@ class MainActivity : AppCompatActivity() {
     private fun setupBottomNavigation() {
         val navView: BottomNavigationView = findViewById(R.id.bottom_navigation)
         navView.setOnItemSelectedListener { item ->
+ juokav-anim
+            val newTabIndex = tabOrder.indexOf(item.itemId)
+            if (newTabIndex == -1) return@setOnItemSelectedListener false
+
+            val transaction = supportFragmentManager.beginTransaction()
+
+            // Determine animation direction
+            if (newTabIndex > currentTabIndex) {
+                transaction.setCustomAnimations(R.anim.slide_in_right, R.anim.slide_out_left)
+            } else if (newTabIndex < currentTabIndex) {
+                transaction.setCustomAnimations(R.anim.slide_in_left, R.anim.slide_out_right)
+            }
+
+            currentTabIndex = newTabIndex
+
+            when (item.itemId) {
+                R.id.nav_month_calendar -> transaction.replace(R.id.fragment_container, MonthCalendarFragment())
+                R.id.nav_week_calandar -> transaction.replace(R.id.fragment_container, WeekCalendarFragment())
+                R.id.nav_alarm -> transaction.replace(R.id.fragment_container, AlarmFragment())
+                R.id.nav_settings -> transaction.replace(R.id.fragment_container, SettingsFragment())
+                else -> return@setOnItemSelectedListener false
+            }
+
+            transaction.commit()
+            true
+
             val fragment = when (item.itemId) {
                 R.id.nav_month_calendar -> MonthCalendarFragment()
                 R.id.nav_week_calandar -> WeekCalendarFragment()
@@ -75,6 +121,7 @@ class MainActivity : AppCompatActivity() {
                     .commit()
                 true
             } ?: false
+master
         }
     }
 
@@ -127,8 +174,21 @@ class MainActivity : AppCompatActivity() {
             splashView.visibility = View.GONE
 
             supportFragmentManager.beginTransaction()
-                .replace(R.id.fragment_container, WeekCalendarFragment())
+                .replace(R.id.fragment_container, MonthCalendarFragment())
                 .commit()
+ juokav-anim
+            navView.selectedItemId = R.id.nav_month_calendar
+        }
+
+
+    }
+
+
+    private fun throwNotification(notificationId : Int, builder : NotificationCompat.Builder){
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS)
+            != PackageManager.PERMISSION_GRANTED) {
+            var requestCode = 1
+            ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.POST_NOTIFICATIONS), requestCode)
 
             val navView: BottomNavigationView = findViewById(R.id.bottom_navigation)
             navView.selectedItemId = R.id.nav_week_calandar
@@ -154,6 +214,7 @@ class MainActivity : AppCompatActivity() {
                 arrayOf(android.Manifest.permission.POST_NOTIFICATIONS),
                 1
             )
+ master
             return
         }
 

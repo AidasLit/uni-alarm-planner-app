@@ -12,6 +12,13 @@ import android.view.ViewGroup
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.AnimatedContentTransitionScope
+import androidx.compose.animation.SizeTransform
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -28,6 +35,18 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.fragment.app.Fragment
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
+import androidx.compose.animation.with
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
+import androidx.compose.animation.with
+import androidx.compose.ui.draw.clipToBounds
+import androidx.compose.ui.platform.LocalDensity
+
 
 class SettingsFragment : Fragment() {
 
@@ -62,14 +81,28 @@ class SettingsFragment : Fragment() {
     }
 }
 
+
+
+
+
+
+@OptIn(androidx.compose.animation.ExperimentalAnimationApi::class)
 @Composable
 fun SettingsScreen(ringtonePickerLauncher: androidx.activity.result.ActivityResultLauncher<Intent>) {
+
+    val categories =
+        listOf("Time Format", "Ringtone", "Alarm ring duration", "About", "Privacy Policy")
+
+    var selectedCategory by remember { mutableStateOf("Time Format") }
+    var previousCategory by remember { mutableStateOf("Time Format") }
+
+    val currentIndex = categories.indexOf(selectedCategory)
+    val previousIndex = categories.indexOf(previousCategory)
+
+
     val context = LocalContext.current
     val prefs = context.getSharedPreferences("AppPrefs", Context.MODE_PRIVATE)
 
-    var selectedCategory by remember { mutableStateOf("Time Format") }
-
-    val categories = listOf("Time Format", "Ringtone", "Alarm ring duration", "About", "Privacy Policy")
 
     // Naujos spalvos
     val backgroundColor = Color(0xFF121212)           // Bendra fono spalva
@@ -79,11 +112,12 @@ fun SettingsScreen(ringtonePickerLauncher: androidx.activity.result.ActivityResu
     val textColor = Color(0xFF1565C0)
     val secondaryTextColor = Color(0xFF1565C0)
 
-    Column(modifier = Modifier
-        .fillMaxSize()
-        .background(backgroundColor))
-    {
-        // Top Bar
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(backgroundColor)
+    ) {
+        // ✅ Top bar (fixed height)
         Box(
             modifier = Modifier
                 .fillMaxWidth()
@@ -99,54 +133,84 @@ fun SettingsScreen(ringtonePickerLauncher: androidx.activity.result.ActivityResu
             )
         }
 
-        Row(modifier = Modifier.fillMaxSize()) {
-            // Kairysis meniu
-            LazyColumn(
-                modifier = Modifier
-                    .weight(1f)
-                    .fillMaxHeight()
-                    .background(leftPanelColor) // pakeista
-                    .padding(8.dp)
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .weight(1f) // this ensures the box fills remaining space below top bar
+        ) {
+            Row(
+                modifier = Modifier.fillMaxSize()
             ) {
-                items(categories) { category ->
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(vertical = 4.dp)
-                            .background(
-                                color = if (selectedCategory == category) highlightColor else Color.Transparent,
-                                shape = androidx.compose.foundation.shape.RoundedCornerShape(50)
+                // Left-side menu
+                LazyColumn(
+                    modifier = Modifier
+                        .weight(1f)
+                        .fillMaxHeight()
+                        .background(leftPanelColor)
+                        .padding(8.dp)
+                ) {
+                    items(categories) { category ->
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(vertical = 4.dp)
+                                .background(
+                                    color = if (selectedCategory == category) highlightColor else Color.Transparent,
+                                    shape = androidx.compose.foundation.shape.RoundedCornerShape(50)
+                                )
+                                .clickable {
+                                    if (category != selectedCategory) {
+                                        previousCategory = selectedCategory
+                                        selectedCategory = category
+                                    }
+                                }
+                                .padding(horizontal = 16.dp, vertical = 12.dp),
+                            contentAlignment = Alignment.CenterStart
+                        ) {
+                            Text(
+                                text = category,
+                                fontSize = 18.sp,
+                                color = if (selectedCategory == category) Color.White else secondaryTextColor
                             )
-                            .clickable { selectedCategory = category }
-                            .padding(horizontal = 16.dp, vertical = 12.dp),
-                        contentAlignment = Alignment.CenterStart
-                    ) {
-                        Text(
-                            text = category,
-                            fontSize = 18.sp,
-                            color = if (selectedCategory == category) Color.White else secondaryTextColor
-                        )
+                        }
                     }
                 }
-            }
 
-            // Dešinysis panelis (turinys)
-            Box(
-                modifier = Modifier
-                    .weight(2f)
-                    .fillMaxHeight()
-                    .background(rightPanelColor) // pakeista
-                    .padding(16.dp)
-            ) {
-                when (selectedCategory) {
-                    "Time Format" -> TimeFormatSetting(prefs, textColor)
-                    "Ringtone" -> SoundPickerSetting(prefs, ringtonePickerLauncher, textColor)
-                    "Alarm ring duration" -> AlarmDurationSetting(prefs, textColor)
-                    "About" -> AboutSetting(textColor)
-                    "Privacy Policy" -> PrivacyPolicySetting(textColor)
+                Box(
+                    modifier = Modifier
+                        .weight(2f)
+                        .fillMaxHeight()
+                        .background(rightPanelColor)
+                        .padding(16.dp)
+                        .clipToBounds() // This ensures the animation doesn't escape its box
+                ) {
+                    AnimatedContent(
+                        targetState = selectedCategory,
+                        transitionSpec = {
+                            val targetIndex = categories.indexOf(targetState)
+                            val initialIndex = categories.indexOf(initialState)
+
+                            if (targetIndex > initialIndex) {
+                                slideInVertically { it } + fadeIn() with slideOutVertically { -it } + fadeOut()
+                            } else {
+                                slideInVertically { -it } + fadeIn() with slideOutVertically { it } + fadeOut()
+                            }.using(SizeTransform(clip = false))
+                },
+                        modifier = Modifier.fillMaxSize()
+                    ) { category ->
+                        when (category) {
+                            "Time Format" -> TimeFormatSetting(prefs, textColor)
+                            "Ringtone" -> SoundPickerSetting(prefs, ringtonePickerLauncher, textColor)
+                            "Alarm ring duration" -> AlarmDurationSetting(prefs, textColor)
+                            "About" -> AboutSetting(textColor)
+                            "Privacy Policy" -> PrivacyPolicySetting(textColor)
+                        }
+                    }
                 }
+
             }
         }
+
     }
 }
 
@@ -261,8 +325,11 @@ fun AlarmDurationSetting(prefs: android.content.SharedPreferences, textColor: Co
 
 @Composable
 fun AboutSetting(textColor: Color) {
+    val context = LocalContext.current
+    val aboutText = readRawTextFile(context, R.raw.about)
+
     Text(
-        text = "This app was created to demonstrate a settings screen with Jetpack Compose.\nVersion 1.0",
+        text = aboutText,
         fontSize = 16.sp,
         color = textColor
     )
@@ -270,9 +337,18 @@ fun AboutSetting(textColor: Color) {
 
 @Composable
 fun PrivacyPolicySetting(textColor: Color) {
+    val context = LocalContext.current
+    val privacyText = readRawTextFile(context, R.raw.privacy)
     Text(
-        text = "Privacy Policy: We do not collect any personal data.",
+        text = privacyText,
         fontSize = 16.sp,
         color = textColor
     )
+}
+
+@Composable
+fun readRawTextFile(context: Context, rawResId: Int): String {
+    return remember(rawResId) {
+        context.resources.openRawResource(rawResId).bufferedReader().use { it.readText() }
+    }
 }
