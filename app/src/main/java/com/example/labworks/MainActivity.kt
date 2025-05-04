@@ -6,11 +6,11 @@ import android.app.PendingIntent
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.Color
-import android.os.Bundle
-import android.os.Handler
-import android.os.Looper
+import android.os.*
 import android.view.View
+import android.view.animation.AccelerateDecelerateInterpolator
 import android.view.animation.Animation
+import android.view.animation.AnimationUtils
 import android.view.animation.RotateAnimation
 import android.widget.FrameLayout
 import android.widget.ImageView
@@ -19,14 +19,12 @@ import androidx.core.app.ActivityCompat
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import com.google.android.material.bottomnavigation.BottomNavigationView
-import java.util.*
-import android.animation.ObjectAnimator
-import android.view.animation.AccelerateDecelerateInterpolator
-import android.view.animation.LinearInterpolator
 
 class MainActivity : AppCompatActivity() {
-juokav-anim
+
     private var currentTabIndex = 0
+    private lateinit var compassArrow: ImageView
+    private lateinit var navView: BottomNavigationView
 
     private val tabOrder = listOf(
         R.id.nav_month_calendar,
@@ -35,59 +33,36 @@ juokav-anim
         R.id.nav_settings
     )
 
-
-    private lateinit var compassArrow: ImageView
-    private var currentDegree = 0f
-master
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
         createNotificationChannel()
+        navView = findViewById(R.id.bottom_navigation)
         setupBottomNavigation()
         showSplashScreen(savedInstanceState)
         trySetupCompass()
-
-
- juokav-anim
-
-
-        // Create the NotificationChannel.
-        val name = "Main"
-        val descriptionText = "Main channel used for app notifications"
-        val importance = NotificationManager.IMPORTANCE_DEFAULT
-
-master
-
-
     }
 
-    // 🔔 Sukuria notifikacijų kanalą (būtina Android 8+)
     private fun createNotificationChannel() {
-        val channelId = "0"
-        val channelName = "Main"
-        val descriptionText = "Main channel used for app notifications"
-
-        val channel = NotificationChannel(channelId, channelName, NotificationManager.IMPORTANCE_DEFAULT).apply {
-            description = descriptionText
+        val channel = NotificationChannel(
+            "0",
+            "Main",
+            NotificationManager.IMPORTANCE_DEFAULT
+        ).apply {
+            description = "Main channel used for app notifications"
         }
 
         val notificationManager = getSystemService(NOTIFICATION_SERVICE) as NotificationManager
         notificationManager.createNotificationChannel(channel)
     }
 
-    // 📲 Bottom Navigation setup
     private fun setupBottomNavigation() {
-        val navView: BottomNavigationView = findViewById(R.id.bottom_navigation)
         navView.setOnItemSelectedListener { item ->
- juokav-anim
             val newTabIndex = tabOrder.indexOf(item.itemId)
             if (newTabIndex == -1) return@setOnItemSelectedListener false
 
             val transaction = supportFragmentManager.beginTransaction()
-
-            // Determine animation direction
             if (newTabIndex > currentTabIndex) {
                 transaction.setCustomAnimations(R.anim.slide_in_right, R.anim.slide_out_left)
             } else if (newTabIndex < currentTabIndex) {
@@ -96,115 +71,62 @@ master
 
             currentTabIndex = newTabIndex
 
-            when (item.itemId) {
-                R.id.nav_month_calendar -> transaction.replace(R.id.fragment_container, MonthCalendarFragment())
-                R.id.nav_week_calandar -> transaction.replace(R.id.fragment_container, WeekCalendarFragment())
-                R.id.nav_alarm -> transaction.replace(R.id.fragment_container, AlarmFragment())
-                R.id.nav_settings -> transaction.replace(R.id.fragment_container, SettingsFragment())
-                else -> return@setOnItemSelectedListener false
-            }
-
-            transaction.commit()
-            true
-
             val fragment = when (item.itemId) {
                 R.id.nav_month_calendar -> MonthCalendarFragment()
                 R.id.nav_week_calandar -> WeekCalendarFragment()
                 R.id.nav_alarm -> AlarmFragment()
                 R.id.nav_settings -> SettingsFragment()
-                else -> null
+                else -> return@setOnItemSelectedListener false
             }
 
-            fragment?.let {
-                supportFragmentManager.beginTransaction()
-                    .replace(R.id.fragment_container, it)
-                    .commit()
-                true
-            } ?: false
-master
+            transaction.replace(R.id.fragment_container, fragment)
+            transaction.commit()
+
+            true
         }
     }
 
-    // ⏳ Parodo splash screen'ą 1.5s ir užkrauna pradžios fragmentą
     private fun showSplashScreen(savedInstanceState: Bundle?) {
         if (savedInstanceState == null) {
             val splashView = findViewById<FrameLayout>(R.id.splash_view)
             splashView.visibility = View.VISIBLE
-            splashView.startAnimation(android.view.animation.AnimationUtils.loadAnimation(this, R.anim.fade_in))
+            splashView.startAnimation(AnimationUtils.loadAnimation(this, R.anim.fade_in))
 
             Handler(Looper.getMainLooper()).postDelayed({
-                splashView.startAnimation(android.view.animation.AnimationUtils.loadAnimation(this, R.anim.fade_out))
+                splashView.startAnimation(AnimationUtils.loadAnimation(this, R.anim.fade_out))
                 splashView.visibility = View.GONE
 
                 supportFragmentManager.beginTransaction()
-                    .replace(R.id.fragment_container, WeekCalendarFragment())
+                    .replace(R.id.fragment_container, MonthCalendarFragment())
                     .commit()
 
-                val navView: BottomNavigationView = findViewById(R.id.bottom_navigation)
-                navView.selectedItemId = R.id.nav_week_calandar
+                navView.selectedItemId = R.id.nav_month_calendar
             }, 1500L)
         }
     }
 
-    // 🧭 Paleidžia rodyklės animaciją, jei komponentas yra UI
     private fun trySetupCompass() {
         try {
             compassArrow = findViewById(R.id.arrow_image)
             startCompassRotation()
         } catch (e: Exception) {
-            // Jei nėra rodyklės, nieko nedarom
+            // Ignore if arrow not present
         }
     }
 
     private fun startCompassRotation() {
         val rotateAnimation = RotateAnimation(
-            0f, 720f,  // 2 pilni apsisukimai
+            0f, 720f,
             Animation.RELATIVE_TO_SELF, 0.5f,
             Animation.RELATIVE_TO_SELF, 0.5f
         )
-        rotateAnimation.duration = 2000  // Laiką gali koreguoti – pvz., 2000 jei nori truputį lėčiau
+        rotateAnimation.duration = 2000
         rotateAnimation.interpolator = AccelerateDecelerateInterpolator()
         rotateAnimation.fillAfter = true
 
         compassArrow.startAnimation(rotateAnimation)
-
-        Handler(Looper.getMainLooper()).postDelayed({
-            val splashView = findViewById<FrameLayout>(R.id.splash_view)
-            splashView.startAnimation(android.view.animation.AnimationUtils.loadAnimation(this, R.anim.fade_out))
-            splashView.visibility = View.GONE
-
-            supportFragmentManager.beginTransaction()
-                .replace(R.id.fragment_container, MonthCalendarFragment())
-                .commit()
- juokav-anim
-            navView.selectedItemId = R.id.nav_month_calendar
-        }
-
-
     }
 
-
-    private fun throwNotification(notificationId : Int, builder : NotificationCompat.Builder){
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS)
-            != PackageManager.PERMISSION_GRANTED) {
-            var requestCode = 1
-            ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.POST_NOTIFICATIONS), requestCode)
-
-            val navView: BottomNavigationView = findViewById(R.id.bottom_navigation)
-            navView.selectedItemId = R.id.nav_week_calandar
-        }, 1500)
-    }
-
-
-
-
-
-
-
-
-
-
-    // 🔔 Paleidžia notifikaciją, kai leidimas duotas
     private fun throwNotification(notificationId: Int) {
         if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.POST_NOTIFICATIONS)
             != PackageManager.PERMISSION_GRANTED
@@ -214,11 +136,10 @@ master
                 arrayOf(android.Manifest.permission.POST_NOTIFICATIONS),
                 1
             )
- master
             return
         }
 
-        val pendingIntent: PendingIntent = PendingIntent.getActivity(
+        val pendingIntent = PendingIntent.getActivity(
             this,
             0,
             Intent(this, NotifManage::class.java),
@@ -234,6 +155,5 @@ master
             .setAutoCancel(true)
 
         NotificationManagerCompat.from(this).notify(notificationId, builder.build())
-        startActivity(Intent(this, NotifManage::class.java))
     }
 }
