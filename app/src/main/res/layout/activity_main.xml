@@ -4,8 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/your_background_color"
-    android:backgroundTintMode="add"
+    android:background="#333333"
     tools:context=".MainActivity">
 
     <RelativeLayout
@@ -17,9 +16,7 @@
             android:id="@+id/fragment_container"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:layout_above="@id/bottom_navigation">
-
-        </FrameLayout>
+            android:layout_above="@id/bottom_navigation" />
 
         <com.google.android.material.bottomnavigation.BottomNavigationView
             android:id="@+id/bottom_navigation"
@@ -29,5 +26,33 @@
             app:menu="@menu/bottom_nav_menu" />
     </RelativeLayout>
 
+    <!-- SPLASH SCREEN SU LAIKRODŽIU IR RODYKLE -->
+    <FrameLayout
+        android:id="@+id/splash_view"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@drawable/splash_background">
+
+        <ImageView
+            android:id="@+id/clock_image"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:src="@drawable/clock"
+            android:scaleX="0.7"
+            android:scaleY="0.7" />
+
+        <ImageView
+            android:id="@+id/arrow_image"
+            android:layout_width="150dp"
+            android:layout_height="150dp"
+            android:layout_gravity="center"
+            android:src="@drawable/arrow"
+            android:layout_margin="0dp"
+            android:pivotY="100%"
+            android:pivotX="50%"
+            android:scaleX="0.7"
+            android:scaleY="0.7" />
+    </FrameLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>
