@@ -1,18 +1,15 @@
 package com.example.labworks.database
 
 import androidx.lifecycle.LiveData
-import com.example.labworks.database.data.ComponentType
 import com.example.labworks.database.data.Notif
 import com.example.labworks.database.data.NotifComponent
 import com.example.labworks.database.data.NotifDao
-import com.example.labworks.database.data.components.ComponentDao
-import com.example.labworks.database.data.components.DescriptionComp
+import com.example.labworks.database.data.components.ComponentInstance
 import kotlinx.serialization.json.Json
 
 // Class that abstracts DAO usage
 class NotifRepository(
-    private val notifDao: NotifDao,
-    private val componentDao: ComponentDao
+    private val notifDao: NotifDao
 ) {
 
     val readAllData: LiveData<List<Notif>> = notifDao.getAllNotifs()
@@ -21,19 +18,11 @@ class NotifRepository(
         notifDao.upsertNotif(notif)
     }
 
-    suspend fun addDescriptionComponent(notif: Notif) : Notif{
-        val tempDescription = DescriptionComp(
-            description = "my description"
-        )
+    suspend fun addComponent(notif: Notif, component: ComponentInstance, title: String){
+        val toAdd = NotifComponent(title, component.myType, notif.id);
 
-        val tempComp : NotifComponent = NotifComponent(
-            title = "Description",
-            dataType = ComponentType.DESCRIPTION,
-            ownerId =  notif.id,
-            Json.encodeToString(tempDescription)
-        )
+        toAdd.data = Json.encodeToString(component)
 
-        componentDao.upsertComponent(tempComp)
-        return notifDao.getNotif(1)
+        notifDao.upsertComponent(toAdd)
     }
 }

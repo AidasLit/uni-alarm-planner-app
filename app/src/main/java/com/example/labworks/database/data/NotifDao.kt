@@ -11,7 +11,7 @@ interface NotifDao {
 
     // Upsert - insert or update if exists
     @Upsert
-    suspend fun upsertNotif(notif : Notif)
+    suspend fun upsertNotif(notif : Notif): Long
 
     @Query("SELECT * FROM notifs ORDER BY title ASC")
     fun getAllNotifs(): LiveData<List<Notif>>
@@ -21,4 +21,14 @@ interface NotifDao {
 
     @Delete
     suspend fun deleteNotif(notif: Notif)
+
+
+    @Upsert
+    suspend fun upsertComponent(component: NotifComponent): Long
+
+    @Query("SELECT * FROM components WHERE ownerId = :id")
+    fun getComponentsFromId(id : Int): LiveData<List<NotifComponent>>
+
+    @Delete
+    suspend fun deleteComponent(component: NotifComponent)
 }

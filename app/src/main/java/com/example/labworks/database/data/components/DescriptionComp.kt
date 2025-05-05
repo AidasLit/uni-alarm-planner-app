@@ -1,9 +1,10 @@
 package com.example.labworks.database.data.components
 
-import com.example.labworks.database.data.NotifComponentInstance
 import kotlinx.serialization.Serializable
 
 @Serializable
 data class DescriptionComp(
+    override val myType: ComponentType = ComponentType.DESCRIPTION,
+
     val description : String = "blank"
-)  : NotifComponentInstance
+)  : ComponentInstance()

@@ -4,6 +4,7 @@ import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.ForeignKey
 import androidx.room.PrimaryKey
+import com.example.labworks.database.data.components.ComponentType
 
 @Entity(tableName = "components",
     foreignKeys = [ForeignKey(
@@ -17,17 +18,11 @@ data class NotifComponent(
     val dataType : ComponentType = ComponentType.EMPTY,
 
     @ColumnInfo(index = true)
-    val ownerId : Int,
+    val ownerId : Long,
 
     // Serialised JSON object
-    val data : String = ""
+    var data : String = ""
 ) {
     @PrimaryKey(autoGenerate = true)
-    var id : Int = 0
-}
-
-enum class ComponentType {
-    DESCRIPTION,
-    SOUND,
-    EMPTY
+    var id : Long = 0
 }
