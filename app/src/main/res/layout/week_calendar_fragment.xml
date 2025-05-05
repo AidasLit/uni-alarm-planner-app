@@ -6,25 +6,21 @@
     android:orientation="vertical"
     android:padding="16dp">
 
-    <!-- Navigation Row -->
+    <!-- Top Navigation Row -->
     <LinearLayout
         android:id="@+id/navigation_row"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:paddingTop="30dp"
         android:orientation="horizontal"
-        android:gravity="center">
+        android:gravity="center"
+        android:paddingTop="30dp">
 
         <Button
             android:id="@+id/button_previous_week"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="←"
-            android:textSize="40dp"
-            android:paddingTop="0dp"
-            android:paddingBottom="0dp"
-            android:minHeight="2dp"
-            android:minWidth="0dp"
+            android:textSize="40sp"
             android:backgroundTint="?attr/colorPrimary" />
 
         <TextView
@@ -33,8 +29,8 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:text="Week of ..."
-            android:textColor="@color/black"
             android:textAlignment="center"
+            android:textColor="@color/black"
             android:textSize="20sp"
             android:textStyle="bold"
             android:padding="8dp" />
@@ -44,26 +40,30 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="→"
-            android:textSize="40dp"
-            android:paddingTop="0dp"
-            android:paddingBottom="0dp"
-            android:minHeight="2dp"
-            android:minWidth="0dp"
+            android:textSize="40sp"
             android:backgroundTint="?attr/colorPrimary" />
     </LinearLayout>
 
-    <!-- Week Days Row (takes up remaining space) -->
-    <LinearLayout
-        android:id="@+id/week_days_container"
+    <!-- Week Grid with Hours and Days -->
+    <HorizontalScrollView
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1"
-        android:orientation="horizontal"
-        android:weightSum="7"
-        android:padding="0dp"
         android:layout_marginTop="24dp"
-        android:divider="?android:attr/dividerHorizontal"
-        android:showDividers="none">
-        <!-- Buttons are added programmatically -->
-    </LinearLayout>
+        android:fillViewport="true">
+
+        <ScrollView
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:fillViewport="true">
+
+            <LinearLayout
+                android:id="@+id/week_grid_container"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:padding="8dp" />
+        </ScrollView>
+    </HorizontalScrollView>
+
 </LinearLayout>

@@ -55,7 +55,7 @@ import androidx.compose.animation.core.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.ui.graphics.graphicsLayer
-
+import kotlinx.coroutines.launch
 
 
 class SettingsFragment : Fragment() {
@@ -162,12 +162,22 @@ fun SettingsScreen(ringtonePickerLauncher: androidx.activity.result.ActivityResu
                         .padding(8.dp)
                 ) {
                     items(categories) { category ->
+                        val isSelected = selectedCategory == category
+                        val scale by animateFloatAsState(
+                            targetValue = if (isSelected) 1.05f else 1f,
+                            animationSpec = tween(durationMillis = 200),
+                            label = "scaleAnimation"
+                        )
                         Box(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .padding(vertical = 4.dp)
+                                .graphicsLayer {
+                                    scaleX = scale
+                                    scaleY = scale
+                                }
                                 .background(
-                                    color = if (selectedCategory == category) highlightColor else Color.Transparent,
+                                    color = if (isSelected) highlightColor else Color.Transparent,
                                     shape = androidx.compose.foundation.shape.RoundedCornerShape(50)
                                 )
                                 .clickable {
@@ -182,7 +192,7 @@ fun SettingsScreen(ringtonePickerLauncher: androidx.activity.result.ActivityResu
                             Text(
                                 text = category,
                                 fontSize = 18.sp,
-                                color = if (selectedCategory == category) Color.White else secondaryTextColor
+                                color = if (isSelected) Color.White else secondaryTextColor
                             )
                         }
                     }
@@ -363,48 +373,72 @@ fun SoundPickerSetting(
 
 
 @Composable
-fun AlarmDurationSetting(prefs: android.content.SharedPreferences, textColor: Color) {
-        val durations = listOf(5, 10, 15, 30, 60)
-        val durationsLabels =
-            listOf("5 seconds", "10 seconds", "15 seconds", "30 seconds", "1 minute")
-        var selectedIndex by remember {
-            mutableStateOf(durations.indexOf(prefs.getInt("alarmDuration", 10)))
-        }
+fun AlarmDurationSetting(prefs: SharedPreferences, textColor: Color) {
+    val durations = listOf(5, 10, 15, 30, 60)
+    val durationsLabels = listOf("5 seconds", "10 seconds", "15 seconds", "30 seconds", "1 minute")
+    var selectedIndex by remember {
+        mutableStateOf(durations.indexOf(prefs.getInt("alarmDuration", 10)))
+    }
 
-        Column {
-            Text(
-                "Select Alarm Duration:",
-                fontSize = 20.sp,
-                fontWeight = FontWeight.Bold,
-                color = textColor
-            )
-            Spacer(modifier = Modifier.height(16.dp))
+    var expanded by remember { mutableStateOf(false) }
+    var pressed by remember { mutableStateOf(false) }
+    val scope = rememberCoroutineScope()  // ✅ Needed to launch delay
 
-            var expanded by remember { mutableStateOf(false) }
+    val scale by animateFloatAsState(
+        targetValue = if (pressed) 1.05f else 1f,
+        animationSpec = tween(durationMillis = 150),
+        label = "buttonScale"
+    )
 
-            Box {
-                OutlinedButton(onClick = { expanded = true }) {
-                    Text(durationsLabels[selectedIndex])
+    Column {
+        Text(
+            "Select Alarm Duration:",
+            fontSize = 20.sp,
+            fontWeight = FontWeight.Bold,
+            color = textColor
+        )
+        Spacer(modifier = Modifier.height(16.dp))
+
+        Box(
+            modifier = Modifier
+                .graphicsLayer {
+                    scaleX = scale
+                    scaleY = scale
                 }
-
-                DropdownMenu(
-                    expanded = expanded,
-                    onDismissRequest = { expanded = false }
-                ) {
-                    durationsLabels.forEachIndexed { index, label ->
-                        DropdownMenuItem(
-                            text = { Text(label) },
-                            onClick = {
-                                selectedIndex = index
-                                prefs.edit().putInt("alarmDuration", durations[index]).apply()
-                                expanded = false
-                            }
-                        )
+        ) {
+            OutlinedButton(
+                onClick = {
+                    pressed = true
+                    expanded = true
+                    scope.launch {
+                        kotlinx.coroutines.delay(150)
+                        pressed = false
                     }
+                }
+            ) {
+                Text(durationsLabels[selectedIndex])
+            }
+
+            DropdownMenu(
+                expanded = expanded,
+                onDismissRequest = { expanded = false }
+            ) {
+                durationsLabels.forEachIndexed { index, label ->
+                    DropdownMenuItem(
+                        text = { Text(label) },
+                        onClick = {
+                            selectedIndex = index
+                            prefs.edit().putInt("alarmDuration", durations[index]).apply()
+                            expanded = false
+                        }
+                    )
                 }
             }
         }
     }
+}
+
+
 
 
 @Composable

@@ -8,6 +8,7 @@ import android.widget.*
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import com.example.labworks.R
+import java.lang.reflect.Array.set
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -20,40 +21,41 @@ class WeekCalendarFragment : Fragment() {
 
     private var currentCalendar: Calendar = Calendar.getInstance()
 
+    private lateinit var rootView: View  // 👈 add this property to the class
+
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View? {
-        val view = inflater.inflate(R.layout.week_calendar_fragment, container, false)
+    ): View {
+        rootView = inflater.inflate(R.layout.week_calendar_fragment, container, false)
 
-        // Dar tamsesnis backgroundas visam fragmentui
-        view.setBackgroundColor(android.graphics.Color.parseColor("#121212"))
+        rootView.setBackgroundColor(android.graphics.Color.parseColor("#121212"))
 
-        weekTitle = view.findViewById(R.id.text_current_week)
-        previousButton = view.findViewById(R.id.button_previous_week)
-        nextButton = view.findViewById(R.id.button_next_week)
-        weekContainer = view.findViewById(R.id.week_days_container)
+        weekTitle = rootView.findViewById(R.id.text_current_week)
+        previousButton = rootView.findViewById(R.id.button_previous_week)
+        nextButton = rootView.findViewById(R.id.button_next_week)
+        weekContainer = rootView.findViewById(R.id.week_grid_container)
 
-        // Previous ir Next mygtukų stilizavimas
         styleButton(previousButton)
         styleButton(nextButton)
 
-        updateWeekView()
+        updateWeekGrid(rootView) // ✅ now passes the root view
 
         previousButton.setOnClickListener {
+            animateButtonBounce(previousButton)
             currentCalendar.add(Calendar.WEEK_OF_YEAR, -1)
-            animateWeekChange(R.anim.slide_in_left, R.anim.slide_out_right) {}
+            animateWeekChange(R.anim.slide_in_left, R.anim.slide_out_right)
         }
-
 
         nextButton.setOnClickListener {
+            animateButtonBounce(nextButton)
             currentCalendar.add(Calendar.WEEK_OF_YEAR, 1)
-            animateWeekChange(R.anim.slide_in_right, R.anim.slide_out_left) {}
+            animateWeekChange(R.anim.slide_in_right, R.anim.slide_out_left)
         }
 
-
-        return view
+        return rootView
     }
+
 
     private fun styleButton(button: Button) {
         val backgroundDrawable = GradientDrawable()
@@ -63,69 +65,103 @@ class WeekCalendarFragment : Fragment() {
         button.setTextColor(android.graphics.Color.WHITE)
     }
 
-    private fun updateWeekView() {
+    private fun updateWeekGrid(rootView: View) {
+        val gridContainer = rootView.findViewById<LinearLayout>(R.id.week_grid_container)
+        gridContainer.removeAllViews()
+
+        val context = requireContext()
+        val today = Calendar.getInstance()
         val weekStart = currentCalendar.clone() as Calendar
         weekStart.set(Calendar.DAY_OF_WEEK, Calendar.MONDAY)
 
-        val weekEnd = weekStart.clone() as Calendar
-        weekEnd.add(Calendar.DAY_OF_WEEK, 6)
+        // LEFT: Hours column
+        val hourColumn = LinearLayout(context).apply {
+            orientation = LinearLayout.VERTICAL
+            layoutParams = LinearLayout.LayoutParams(120, LinearLayout.LayoutParams.WRAP_CONTENT).apply {
+                setMargins(8, 0, 8, 0)
+            }
+        }
 
-        val dateFormat = SimpleDateFormat("MMM dd", Locale.getDefault())
-        val fullFormat = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+        // Add empty space on top for alignment with date headers
+        hourColumn.addView(TextView(context).apply {
+            text = ""
+            height = 100
+        })
 
-        val startStr = dateFormat.format(weekStart.time)
-        val endStr = dateFormat.format(weekEnd.time)
-        val yearStr = SimpleDateFormat("yyyy", Locale.getDefault()).format(weekStart.time)
-        weekTitle.text = "Week of $startStr – $endStr, $yearStr"
-
-        weekContainer.removeAllViews()
-
-        val today = Calendar.getInstance()
+        for (hour in 0..23) {
+            hourColumn.addView(TextView(context).apply {
+                text = "$hour:00"
+                textSize = 14f
+                setTextColor(android.graphics.Color.GRAY)
+                setPadding(8, 8, 8, 8)
+                layoutParams = LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.MATCH_PARENT,
+                    100
+                )
+            })
+        }
+        gridContainer.addView(hourColumn)
 
         for (i in 0 until 7) {
             val day = weekStart.clone() as Calendar
             day.add(Calendar.DAY_OF_WEEK, i)
 
-            val btn = Button(requireContext())
-            val layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.MATCH_PARENT, 1f)
-            layoutParams.setMargins(8, 4, 8, 8) // Didesni tarpai tarp mygtukų
-            btn.layoutParams = layoutParams
-            btn.text = SimpleDateFormat("EEE\ndd", Locale.getDefault()).format(day.time)
-            btn.textAlignment = View.TEXT_ALIGNMENT_CENTER
-            btn.textSize = 16f
-            btn.setPadding(0, 4, 0, 8)
-
-            val backgroundDrawable = GradientDrawable()
-            backgroundDrawable.setColor(android.graphics.Color.parseColor("#1E1E1E")) // Mygtuko fonas
-            backgroundDrawable.setStroke(3, android.graphics.Color.parseColor("#555555")) // Aiškesnis rėmelis
-            backgroundDrawable.cornerRadius = 16f
-
-            btn.background = backgroundDrawable
-            btn.setTextColor(android.graphics.Color.WHITE)
-
-            if (day.get(Calendar.YEAR) == today.get(Calendar.YEAR) &&
-                day.get(Calendar.DAY_OF_YEAR) == today.get(Calendar.DAY_OF_YEAR)) {
-                backgroundDrawable.setColor(android.graphics.Color.parseColor("#424242")) // Highlight šiandienai
-                btn.setTypeface(null, Typeface.BOLD)
+            val column = LinearLayout(requireContext()).apply {
+                orientation = LinearLayout.VERTICAL
+                layoutParams = LinearLayout.LayoutParams(
+                    100,
+                    LinearLayout.LayoutParams.MATCH_PARENT
+                ).apply {
+                    setMargins(8, 0, 12, 0)
+                }
             }
 
-            btn.setOnClickListener {
-                Toast.makeText(requireContext(), "Clicked: ${fullFormat.format(day.time)}", Toast.LENGTH_SHORT).show()
+            // Header
+            val header = TextView(requireContext()).apply {
+                text = SimpleDateFormat("EEE\ndd", Locale.getDefault()).format(day.time)
+                textAlignment = View.TEXT_ALIGNMENT_CENTER
+                setTextColor(android.graphics.Color.WHITE)
+                setTypeface(null, Typeface.BOLD)
+            }
+            column.addView(header)
+
+            // Time slots
+            for (hour in 0..23) {
+                val slot = TextView(requireContext()).apply {
+                    text = ""
+                    setBackgroundColor(android.graphics.Color.parseColor("#1E1E1E"))
+                    layoutParams = LinearLayout.LayoutParams(
+                        LinearLayout.LayoutParams.MATCH_PARENT,
+                        100
+                    )
+                    setOnClickListener {
+                        val time = (day.clone() as Calendar).apply {
+                            set(Calendar.HOUR_OF_DAY, hour)
+                        }.time
+                        val formatted = SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.getDefault()).format(time)
+                        Toast.makeText(context, "Clicked: $formatted", Toast.LENGTH_SHORT).show()
+                    }
+
+                }
+                column.addView(slot)
             }
 
-            weekContainer.addView(btn)
+            gridContainer.addView(column)
         }
 
+
+
+
     }
-    private fun animateWeekChange(enterAnim: Int, exitAnim: Int, onAnimationEnd: () -> Unit) {
+
+    private fun animateWeekChange(enterAnim: Int, exitAnim: Int) {
         val exitAnimation = android.view.animation.AnimationUtils.loadAnimation(requireContext(), exitAnim)
         val enterAnimation = android.view.animation.AnimationUtils.loadAnimation(requireContext(), enterAnim)
 
         exitAnimation.setAnimationListener(object : android.view.animation.Animation.AnimationListener {
             override fun onAnimationStart(animation: android.view.animation.Animation?) {}
             override fun onAnimationEnd(animation: android.view.animation.Animation?) {
-                // Update content after old view slides out
-                updateWeekView()
+                updateWeekGrid(rootView) // ✅ use stored rootView
                 weekContainer.startAnimation(enterAnimation)
             }
             override fun onAnimationRepeat(animation: android.view.animation.Animation?) {}
@@ -133,5 +169,22 @@ class WeekCalendarFragment : Fragment() {
 
         weekContainer.startAnimation(exitAnimation)
     }
+
+
+    private fun animateButtonBounce(button: View) {
+        button.animate()
+            .scaleX(1.1f)
+            .scaleY(1.1f)
+            .setDuration(100)
+            .withEndAction {
+                button.animate()
+                    .scaleX(1f)
+                    .scaleY(1f)
+                    .setDuration(100)
+                    .start()
+            }
+            .start()
+    }
+
 
 }
