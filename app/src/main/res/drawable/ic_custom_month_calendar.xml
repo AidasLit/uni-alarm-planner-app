@@ -1,0 +1,42 @@
+<!-- res/drawable/ic_custom_star.xml -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+
+    <path
+        android:fillColor="#00000000"
+        android:pathData="M0,   1h  24v 15h -24z" />
+
+
+    <path android:fillColor="#ffffff" android:pathData="M0  ,3h     21v 1h  -25z" />
+    <path android:fillColor="#ffffff" android:pathData="M0  ,3h     1v  18h -1z" />
+    <path android:fillColor="#ffffff" android:pathData="M21 ,3h     1v  18h -1z" />
+    <path android:fillColor="#ffffff" android:pathData="M0  ,20h    21v 1h  -25z" />
+
+
+    <path android:fillColor="#ffffff" android:pathData="M3  ,4h 1v 16h -1z" />
+    <path android:fillColor="#ffffff" android:pathData="M6  ,4h 1v 16h -1z" />
+    <path android:fillColor="#ffffff" android:pathData="M9 ,4h 1v 16h  -1z" />
+    <path android:fillColor="#ffffff" android:pathData="M12 ,4h 1v 16h  -1z" />
+    <path android:fillColor="#ffffff" android:pathData="M15 ,4h 1v 16h  -1z" />
+    <path android:fillColor="#ffffff" android:pathData="M18 ,4h 1v 16h  -1z" />
+
+
+
+    <!-- pirmas h nusako aukštį -->
+    <!-- antras h nusako plotį linijos -->
+    <!-- v nusako ilgį linijos -->
+    <!-- M nusako padėjimo tašką -->
+    <path android:fillColor="#ffffff" android:pathData="M1  ,7.5h    21v 1h  -25z" />
+    <path android:fillColor="#ffffff" android:pathData="M1  ,11.75h    21v 1h  -25z" />
+    <path android:fillColor="#ffffff" android:pathData="M1  ,15.75h    21v 1h  -25z" />
+
+
+    <path android:fillColor="#ffffff" android:pathData="M3.5  ,0h 3v 3h -3z" />
+    <path android:fillColor="#ffffff" android:pathData="M15.5  ,0h 3v 3h -3z" />
+
+
+
+</vector>
