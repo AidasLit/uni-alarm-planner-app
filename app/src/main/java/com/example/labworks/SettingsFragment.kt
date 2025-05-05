@@ -3,6 +3,7 @@ package com.example.labworks
 import android.app.Activity
 import android.content.Context
 import android.content.Intent
+import android.content.SharedPreferences
 import android.media.RingtoneManager
 import android.net.Uri
 import android.os.Bundle
@@ -10,7 +11,10 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
+import androidx.activity.compose.ManagedActivityResultLauncher
 import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.ActivityResult
+import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedContentTransitionScope
@@ -46,6 +50,12 @@ import androidx.compose.animation.slideOutVertically
 import androidx.compose.animation.with
 import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.*
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Notifications
+import androidx.compose.ui.graphics.graphicsLayer
+
 
 
 class SettingsFragment : Fragment() {
@@ -98,6 +108,8 @@ fun SettingsScreen(ringtonePickerLauncher: androidx.activity.result.ActivityResu
 
     val currentIndex = categories.indexOf(selectedCategory)
     val previousIndex = categories.indexOf(previousCategory)
+
+    var ringtoneSignal by remember { mutableStateOf(0) }
 
 
     val context = LocalContext.current
@@ -200,7 +212,7 @@ fun SettingsScreen(ringtonePickerLauncher: androidx.activity.result.ActivityResu
                     ) { category ->
                         when (category) {
                             "Time Format" -> TimeFormatSetting(prefs, textColor)
-                            "Ringtone" -> SoundPickerSetting(prefs, ringtonePickerLauncher, textColor)
+                            "Ringtone" -> SoundPickerSetting(prefs, ringtonePickerLauncher, textColor, ringtoneSignal)
                             "Alarm ring duration" -> AlarmDurationSetting(prefs, textColor)
                             "About" -> AboutSetting(textColor)
                             "Privacy Policy" -> PrivacyPolicySetting(textColor)
@@ -250,33 +262,94 @@ fun TimeFormatSetting(prefs: android.content.SharedPreferences, textColor: Color
 
 @Composable
 fun SoundPickerSetting(
-    prefs: android.content.SharedPreferences,
-    ringtonePickerLauncher: androidx.activity.result.ActivityResultLauncher<Intent>,
-    textColor: Color
+    prefs: SharedPreferences,
+    ringtonePickerLauncher: ActivityResultLauncher<Intent>,
+    textColor: Color,
+    ringtoneSignal: Int
 ) {
     val context = LocalContext.current
-    val savedUri = prefs.getString("alarmSound", null)?.let { Uri.parse(it) }
-    var ringtoneTitle by remember {
-        mutableStateOf(savedUri?.let { uri ->
-            RingtoneManager.getRingtone(context, uri)?.getTitle(context)
-        } ?: "No sound selected")
+    var currentUri by remember { mutableStateOf<Uri?>(null) }
+    var ringtoneTitle by remember { mutableStateOf("No sound selected") }
+    var isPlaying by remember { mutableStateOf(false) }
+    var ringtone by remember { mutableStateOf<android.media.Ringtone?>(null) }
+
+    // Update on signal change
+    LaunchedEffect(ringtoneSignal) {
+        val savedUri = prefs.getString("alarmSound", null)?.let { Uri.parse(it) }
+        currentUri = savedUri
+        ringtoneTitle = savedUri?.let {
+            RingtoneManager.getRingtone(context, it)?.getTitle(context)
+        } ?: "No sound selected"
     }
 
     Column {
         Text("Select Ringtone:", fontSize = 20.sp, fontWeight = FontWeight.Bold, color = textColor)
         Spacer(modifier = Modifier.height(16.dp))
 
-        Button(onClick = {
-            val intent = Intent(RingtoneManager.ACTION_RINGTONE_PICKER)
-            intent.putExtra(RingtoneManager.EXTRA_RINGTONE_TYPE, RingtoneManager.TYPE_ALARM)
-            intent.putExtra(RingtoneManager.EXTRA_RINGTONE_TITLE, "Select Alarm Sound")
-            intent.putExtra(RingtoneManager.EXTRA_RINGTONE_SHOW_SILENT, false)
-            savedUri?.let {
-                intent.putExtra(RingtoneManager.EXTRA_RINGTONE_EXISTING_URI, it)
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Button(onClick = {
+                val intent = Intent(RingtoneManager.ACTION_RINGTONE_PICKER).apply {
+                    putExtra(RingtoneManager.EXTRA_RINGTONE_TYPE, RingtoneManager.TYPE_ALARM)
+                    putExtra(RingtoneManager.EXTRA_RINGTONE_TITLE, "Select Alarm Sound")
+                    putExtra(RingtoneManager.EXTRA_RINGTONE_SHOW_SILENT, false)
+                    currentUri?.let {
+                        putExtra(RingtoneManager.EXTRA_RINGTONE_EXISTING_URI, it)
+                    }
+                }
+                ringtonePickerLauncher.launch(intent)
+            }) {
+                Text("Pick Sound")
             }
-            ringtonePickerLauncher.launch(intent)
-        }) {
-            Text("Pick Sound")
+
+            Spacer(modifier = Modifier.width(16.dp))
+
+
+
+            // Color animation
+            val buttonColor by animateColorAsState(
+                targetValue = if (isPlaying) Color.Red else MaterialTheme.colorScheme.primary,
+                animationSpec = tween(300),
+                label = "buttonColor"
+            )
+
+// Rotation animation
+            val infiniteTransition = rememberInfiniteTransition(label = "vibration")
+            val rotation by infiniteTransition.animateFloat(
+                initialValue = -10f,
+                targetValue = 10f,
+                animationSpec = infiniteRepeatable(
+                    animation = tween(durationMillis = 100, easing = LinearEasing),
+                    repeatMode = RepeatMode.Reverse
+                ),
+                label = "rotationAnim"
+            )
+
+            Button(
+                onClick = {
+                    if (isPlaying) {
+                        ringtone?.stop()
+                        isPlaying = false
+                    } else {
+                        currentUri?.let { uri ->
+                            ringtone = RingtoneManager.getRingtone(context, uri)
+                            ringtone?.play()
+                            isPlaying = true
+                        }
+                    }
+                },
+                enabled = currentUri != null,
+                colors = ButtonDefaults.buttonColors(containerColor = buttonColor),
+                modifier = Modifier
+                    .graphicsLayer {
+                        rotationZ = if (isPlaying) rotation else 0f
+                    }
+            ) {
+                Text(if (isPlaying) "Stop" else "Play")
+            }
+
+
+
+
         }
 
         Spacer(modifier = Modifier.height(16.dp))
@@ -285,43 +358,54 @@ fun SoundPickerSetting(
     }
 }
 
+
+
+
+
 @Composable
 fun AlarmDurationSetting(prefs: android.content.SharedPreferences, textColor: Color) {
-    val durations = listOf(5, 10, 15, 30, 60)
-    val durationsLabels = listOf("5 seconds", "10 seconds", "15 seconds", "30 seconds", "1 minute")
-    var selectedIndex by remember {
-        mutableStateOf(durations.indexOf(prefs.getInt("alarmDuration", 10)))
-    }
+        val durations = listOf(5, 10, 15, 30, 60)
+        val durationsLabels =
+            listOf("5 seconds", "10 seconds", "15 seconds", "30 seconds", "1 minute")
+        var selectedIndex by remember {
+            mutableStateOf(durations.indexOf(prefs.getInt("alarmDuration", 10)))
+        }
 
-    Column {
-        Text("Select Alarm Duration:", fontSize = 20.sp, fontWeight = FontWeight.Bold, color = textColor)
-        Spacer(modifier = Modifier.height(16.dp))
+        Column {
+            Text(
+                "Select Alarm Duration:",
+                fontSize = 20.sp,
+                fontWeight = FontWeight.Bold,
+                color = textColor
+            )
+            Spacer(modifier = Modifier.height(16.dp))
 
-        var expanded by remember { mutableStateOf(false) }
+            var expanded by remember { mutableStateOf(false) }
 
-        Box {
-            OutlinedButton(onClick = { expanded = true }) {
-                Text(durationsLabels[selectedIndex])
-            }
+            Box {
+                OutlinedButton(onClick = { expanded = true }) {
+                    Text(durationsLabels[selectedIndex])
+                }
 
-            DropdownMenu(
-                expanded = expanded,
-                onDismissRequest = { expanded = false }
-            ) {
-                durationsLabels.forEachIndexed { index, label ->
-                    DropdownMenuItem(
-                        text = { Text(label) },
-                        onClick = {
-                            selectedIndex = index
-                            prefs.edit().putInt("alarmDuration", durations[index]).apply()
-                            expanded = false
-                        }
-                    )
+                DropdownMenu(
+                    expanded = expanded,
+                    onDismissRequest = { expanded = false }
+                ) {
+                    durationsLabels.forEachIndexed { index, label ->
+                        DropdownMenuItem(
+                            text = { Text(label) },
+                            onClick = {
+                                selectedIndex = index
+                                prefs.edit().putInt("alarmDuration", durations[index]).apply()
+                                expanded = false
+                            }
+                        )
+                    }
                 }
             }
         }
     }
-}
+
 
 @Composable
 fun AboutSetting(textColor: Color) {
