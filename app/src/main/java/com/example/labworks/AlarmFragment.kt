@@ -41,8 +41,12 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.graphics.vector.addPathNodes
 import androidx.compose.material3.Icon
+import androidx.compose.runtime.livedata.observeAsState
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.text.style.TextAlign
+import androidx.lifecycle.Observer
+import kotlinx.coroutines.launch
 
 class AlarmFragment : Fragment() {
 
@@ -70,6 +74,21 @@ fun AlarmScreen(
         Column(modifier = Modifier.fillMaxSize()) {
             AlarmHeader()
             // ... čia kiti dalykai, jei yra
+
+//            val coroutineScope = rememberCoroutineScope()
+//            var allNotifs = remember { mutableStateOf<List<Notif>?>(null) }
+//
+//            coroutineScope.launch() {
+//                allNotifs = viewModel.getAllNotifs()
+//            }
+//
+//            allNotifs.value?.let {
+//                for (i in 0 until allNotifs.value.size){
+//                    print(notif.title)
+//                }
+//            }
+
+
         }
 
         NotifButton(

@@ -14,10 +14,10 @@ interface NotifDao {
     suspend fun upsertNotif(notif : Notif): Long
 
     @Query("SELECT * FROM notifs ORDER BY title ASC")
-    fun getAllNotifs(): LiveData<List<Notif>>
+    suspend fun getAllNotifs(): List<Notif>
 
     @Query("SELECT * FROM notifs WHERE id = :id")
-    fun getNotif(id : Int): Notif
+    suspend fun getNotif(id : Int): Notif
 
     @Delete
     suspend fun deleteNotif(notif: Notif)
@@ -27,7 +27,7 @@ interface NotifDao {
     suspend fun upsertComponent(component: NotifComponent): Long
 
     @Query("SELECT * FROM components WHERE ownerId = :id")
-    fun getComponentsFromId(id : Int): LiveData<List<NotifComponent>>
+    suspend fun getComponentsFromId(id : Int): List<NotifComponent>
 
     @Delete
     suspend fun deleteComponent(component: NotifComponent)

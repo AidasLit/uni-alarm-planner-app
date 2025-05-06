@@ -18,16 +18,10 @@ import kotlinx.coroutines.launch
 // It serves the function of communication between the database Repository class and UI
 class NotifViewModel(application: Application) : AndroidViewModel(application) {
 
-    private val readAllData: LiveData<List<Notif>>
+
     private val repository: NotifRepository = NotifRepository(
         NotifDatabase.getDatabase(application).notifDao()
     )
-
-    val myNotif : Notif = Notif("temp")
-
-    init {
-        readAllData = repository.readAllData
-    }
 
     fun addNotif(notif: Notif){
          viewModelScope.launch(Dispatchers.IO) {
@@ -43,6 +37,10 @@ class NotifViewModel(application: Application) : AndroidViewModel(application) {
 
             repository.addComponent(notif, componentInstance, title)
         }
+    }
+
+    suspend fun getAllNotifs() : List<Notif> {
+        return repository.getAllNotifs()
     }
 
 }
