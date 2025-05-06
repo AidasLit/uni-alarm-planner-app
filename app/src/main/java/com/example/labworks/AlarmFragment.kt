@@ -1,9 +1,5 @@
 package com.example.labworks
 
-import android.app.Dialog
-import android.content.Intent
-import android.media.RingtoneManager
-import android.net.Uri
 import android.os.Bundle
 import androidx.activity.viewModels
 import androidx.fragment.app.Fragment
@@ -32,7 +28,17 @@ import androidx.compose.ui.window.Dialog
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.labworks.database.NotifViewModel
 import com.example.labworks.database.data.Notif
-import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.graphics.vector.PathBuilder
+import androidx.compose.ui.graphics.vector.path
+import androidx.compose.ui.graphics.vector.ImageVector.Builder
+import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.graphics.vector.rememberVectorPainter
+import androidx.compose.ui.graphics.vector.addPathNodes
+import androidx.compose.material3.Icon
+import androidx.compose.ui.graphics.Brush
 
 class AlarmFragment : Fragment() {
 
@@ -55,20 +61,14 @@ fun AlarmScreen(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color(0xFF121212)) // Tamsus fonas
+            .background(Color(0xFF121212))
     ) {
-        // Tekstas "Add Alarm" viršuje
-        Text(
-            text = "Add Alarm",
-            color = Color.White,
-            fontSize = 24.sp,
-            fontWeight = FontWeight.Bold,
-            modifier = Modifier
-                .align(Alignment.TopCenter)
-                .padding(top = 32.dp)
-        )
+        Column(modifier = Modifier.fillMaxSize()) {
+            AlarmHeader()
+            // ... čia kiti dalykai, jei yra
+        }
 
-        // Apvalus + mygtukas apačioje
+        // Apvalus + mygtukas apačioje (kaip buvo)
         Box(
             contentAlignment = Alignment.Center,
             modifier = Modifier
@@ -77,79 +77,116 @@ fun AlarmScreen(
                 .align(Alignment.BottomCenter)
                 .padding(8.dp)
                 .clickable {
-                    // TODO: Čia įdėsi, ką veiks mygtukas
-
-//                    NotifCreateDialog(
-//                        {},
-//                        {}
-//                    )
-
                     val newNotif = Notif("temp")
-
                     viewModel.addNotif(newNotif)
-
-                    println(newNotif.id)
-
-                    /*viewModel.addDescriptionComponent(
-                        newNotif,
-                        title = "test component title",
-                        description = "test description"
-                    )*/
                 }
         ) {
-            Text(
-                text = "+",
-                color = Color.White,
-                fontSize = 32.sp,
-                textAlign = TextAlign.Center
+            Icon(
+                imageVector = PlusIcon,
+                contentDescription = "Add Notif",
+                tint = Color.White,
+                modifier = Modifier.size(32.dp)
             )
         }
     }
 }
 
+
 @Composable
-fun NotifCreateDialog(
-    onDismissRequest: () -> Unit,
-    onConfirmation: () -> Unit
-) {
-    Dialog(onDismissRequest = { onDismissRequest() }) {
-        // Draw a rectangle shape with rounded corners inside the dialog
-        Card(
+fun AlarmHeader() {
+    Card(
+        modifier = Modifier
+            .padding(16.dp)
+            .fillMaxWidth()
+            .wrapContentHeight(),
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(containerColor = Color(0xFF1E1E1E)),
+        elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
+    ) {
+        Row(
             modifier = Modifier
-                .fillMaxWidth()
-                .height(375.dp)
-                .padding(16.dp),
-            shape = RoundedCornerShape(16.dp),
+                .padding(16.dp)
+                .fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.Center
         ) {
-            Column(
+            Text(
+                text = "Add Alarm",
+                fontSize = 24.sp,
+                fontWeight = FontWeight.Bold,
+                textAlign = TextAlign.Center,
+                color = Color.White,
+                modifier = Modifier.weight(1f)
+            )
+
+            Box(
                 modifier = Modifier
-                    .fillMaxSize(),
-                verticalArrangement = Arrangement.Center,
-                horizontalAlignment = Alignment.CenterHorizontally,
+                    .size(40.dp)
+                    .background(
+                        brush = Brush.linearGradient(
+                            listOf(Color(0xFF8E2DE2), Color(0xFF4A00E0))
+                        ),
+                        shape = CircleShape
+                    ),
+                contentAlignment = Alignment.Center
             ) {
-                Text(
-                    text = "This is a dialog with buttons and an image.",
-                    modifier = Modifier.padding(16.dp),
+                Icon(
+                    imageVector = ClockIcon,
+                    contentDescription = "Alarm Icon",
+                    tint = Color.White,
+                    modifier = Modifier.size(20.dp)
                 )
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth(),
-                    horizontalArrangement = Arrangement.Center,
-                ) {
-                    TextButton(
-                        onClick = { onDismissRequest() },
-                        modifier = Modifier.padding(8.dp),
-                    ) {
-                        Text("Dismiss")
-                    }
-                    TextButton(
-                        onClick = { onConfirmation() },
-                        modifier = Modifier.padding(8.dp),
-                    ) {
-                        Text("Confirm")
-                    }
-                }
             }
         }
     }
 }
+
+
+// Vektorinis „+“ ikonėlės aprašymas
+val PlusIcon: ImageVector
+    get() = Builder(
+        name = "PlusIcon", defaultWidth = 24.dp, defaultHeight = 24.dp,
+        viewportWidth = 24f, viewportHeight = 24f
+    ).apply {
+        path(
+            fill = SolidColor(Color.White),
+        ) {
+            moveTo(10f, 4f)
+            lineTo(14f, 4f)
+            lineTo(14f, 10f)
+            lineTo(20f, 10f)
+            lineTo(20f, 14f)
+            lineTo(14f, 14f)
+            lineTo(14f, 20f)
+            lineTo(10f, 20f)
+            lineTo(10f, 14f)
+            lineTo(4f, 14f)
+            lineTo(4f, 10f)
+            lineTo(10f, 10f)
+            close()
+        }
+    }.build()
+
+// Vektorinis laikrodžio ikonėlės aprašymas
+val ClockIcon: ImageVector
+    get() = Builder(
+        name = "ClockIcon", defaultWidth = 24.dp, defaultHeight = 24.dp,
+        viewportWidth = 24f, viewportHeight = 24f
+    ).apply {
+        path(
+            fill = SolidColor(Color.White),
+        ) {
+            // Apskritimas
+            moveTo(12f, 2f)
+            arcToRelative(10f, 10f, 0f, true, true, 0.01f, 0f)
+            close()
+            // Rodyklės
+            moveTo(11f, 6f)
+            lineTo(11f, 13f)
+            lineTo(16f, 16f)
+            lineTo(16.5f, 15.3f)
+            lineTo(12.5f, 13f)
+            lineTo(12f, 6f)
+            close()
+        }
+    }.build()

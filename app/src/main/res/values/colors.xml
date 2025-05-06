@@ -10,4 +10,8 @@
     <color name="button_color_custom">#DB7777</color>
     <color name="your_background_color">#F6ACAC</color>
     <color name="text_primary">#000000</color>
+    <color name="light_background">#F9F2E7</color>
+    <color name="blue">#1E73BE</color>
+    <color name="orange">#F87C1E</color>
+    <color name="gray_tile">#E0D7C9</color>
 </resources>

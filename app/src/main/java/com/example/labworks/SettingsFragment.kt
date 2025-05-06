@@ -52,10 +52,12 @@ import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.*
+import androidx.compose.foundation.Image
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.ui.graphics.graphicsLayer
 import kotlinx.coroutines.launch
+import androidx.compose.ui.res.painterResource
 
 
 class SettingsFragment : Fragment() {
@@ -137,13 +139,26 @@ fun SettingsScreen(ringtonePickerLauncher: androidx.activity.result.ActivityResu
                 .background(Color(0xFF2C2C2C)),
             contentAlignment = Alignment.Center
         ) {
-            Text(
-                text = "Settings",
-                fontSize = 20.sp,
-                color = Color.White,
-                fontWeight = FontWeight.Bold
-            )
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.Center
+            ) {
+                Text(
+                    text = "Settings",
+                    fontSize = 20.sp,
+                    color = Color.White,
+                    fontWeight = FontWeight.Bold
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                Icon(
+                    painter = painterResource(id = R.drawable.wrench_icon),
+                    contentDescription = "Wrench",
+                    tint = Color.White,
+                    modifier = Modifier.size(20.dp)
+                )
+            }
         }
+
 
         Box(
             modifier = Modifier
@@ -443,15 +458,36 @@ fun AlarmDurationSetting(prefs: SharedPreferences, textColor: Color) {
 
 @Composable
 fun AboutSetting(textColor: Color) {
-    val context = LocalContext.current
-    val aboutText = readRawTextFile(context, R.raw.about)
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center,
+        modifier = Modifier.fillMaxSize()
+    ) {
+        Image(
+            painter = painterResource(id = R.drawable.app_icon), // <- tavo ikona iš drawable
+            contentDescription = "App Icon",
+            modifier = Modifier
+                .size(100.dp)
+                .padding(bottom = 16.dp)
+        )
 
-    Text(
-        text = aboutText,
-        fontSize = 16.sp,
-        color = textColor
-    )
+        Text(
+            text = "PingMe App",
+            fontSize = 22.sp,
+            fontWeight = FontWeight.Bold,
+            color = textColor
+        )
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        Text(
+            text = "Version 1.0",
+            fontSize = 16.sp,
+            color = textColor
+        )
+    }
 }
+
 
 @Composable
 fun PrivacyPolicySetting(textColor: Color) {
