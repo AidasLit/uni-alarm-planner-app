@@ -12,6 +12,7 @@ import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.Modifier
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Text
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.graphics.Color
@@ -41,6 +42,7 @@ import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.graphics.vector.addPathNodes
 import androidx.compose.material3.Icon
 import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.text.style.TextAlign
 
 class AlarmFragment : Fragment() {
 
@@ -70,33 +72,61 @@ fun AlarmScreen(
             // ... čia kiti dalykai, jei yra
         }
 
-        // Apvalus + mygtukas apačioje (kaip buvo)
-        Box(
-            contentAlignment = Alignment.Center,
-            modifier = Modifier
-                .size(64.dp)
-                .background(Color(0xFF333333), shape = CircleShape)
-                .align(Alignment.BottomCenter)
-                .padding(8.dp)
-                .clickable {
-                    val newNotif = Notif("temp")
-                    viewModel.addNotif(newNotif)
-                }
-        ) {
-            Icon(
-                imageVector = PlusIcon,
-                contentDescription = "Add Notif",
-                tint = Color.White,
-                modifier = Modifier.size(32.dp)
-            )
-        }
-				
         NotifButton(
             viewModel,
             modifier = Modifier
                 .align(Alignment.BottomEnd)
                 .padding(32.dp)
         )
+    }
+}
+
+@Composable
+fun AlarmHeader() {
+    Card(
+        modifier = Modifier
+            .padding(16.dp)
+            .fillMaxWidth()
+            .wrapContentHeight(),
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(containerColor = Color(0xFF1E1E1E)),
+        elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
+    ) {
+        Row(
+            modifier = Modifier
+                .padding(16.dp)
+                .fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.Center
+        ) {
+            Text(
+                text = "Alarm list",
+                fontSize = 24.sp,
+                fontWeight = FontWeight.Bold,
+                textAlign = TextAlign.Center,
+                color = Color.White,
+                modifier = Modifier.weight(1f)
+            )
+
+            Box(
+                modifier = Modifier
+                    .size(40.dp)
+                    .background(
+                        brush = Brush.linearGradient(
+                            listOf(Color(0xFF8E2DE2), Color(0xFF4A00E0))
+                        ),
+                        shape = CircleShape
+                    ),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    imageVector = ClockIcon,
+                    contentDescription = "Alarm Icon",
+                    tint = Color.White,
+                    modifier = Modifier.size(20.dp)
+                )
+            }
+        }
     }
 }
 
@@ -123,63 +153,17 @@ fun NotifButton(viewModel: NotifViewModel, modifier: Modifier){
         modifier = modifier
     ) {
         Icon(
-            Icons.Filled.Add,
-            contentDescription = "Add a Ping",
+            imageVector = PlusIcon,
+            contentDescription = "Add an Alarm",
             tint = Color.White
         )
     }
 }
 
 
+
+
 @Composable
-fun AlarmHeader() {
-    Card(
-        modifier = Modifier
-            .padding(16.dp)
-            .fillMaxWidth()
-            .wrapContentHeight(),
-        shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(containerColor = Color(0xFF1E1E1E)),
-        elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
-    ) {
-        Row(
-            modifier = Modifier
-                .padding(16.dp)
-                .fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.Center
-        ) {
-            Text(
-                text = "Add Alarm",
-                fontSize = 24.sp,
-                fontWeight = FontWeight.Bold,
-                textAlign = TextAlign.Center,
-                color = Color.White,
-                modifier = Modifier.weight(1f)
-            )
-
-            Box(
-                modifier = Modifier
-                    .size(40.dp)
-                    .background(
-                        brush = Brush.linearGradient(
-                            listOf(Color(0xFF8E2DE2), Color(0xFF4A00E0))
-                        ),
-                        shape = CircleShape
-                    ),
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(
-                    imageVector = ClockIcon,
-                    contentDescription = "Alarm Icon",
-                    tint = Color.White,
-                    modifier = Modifier.size(20.dp)
-                )
-						}
-        }
-    }
-}
-
 fun NotifCreateDialog(
     onDismissRequest: () -> Unit = {},
     onConfirmation: (title : String) -> Unit = {}
@@ -202,7 +186,7 @@ fun NotifCreateDialog(
                 modifier = Modifier.padding(16.dp)
             ) {
                 Text(
-                    text = "Create a new Ping",
+                    text = "Create a new Alarm",
                     fontSize = 16.sp,
                     fontWeight = FontWeight.Bold
                 )
@@ -211,7 +195,7 @@ fun NotifCreateDialog(
                     value = newTitle,
                     onValueChange = { newTitle = it },
                     singleLine = true,
-                    label = { Text("Enter Ping name") }
+                    label = { Text("Enter Alarm title") }
                 )
 
                 Row(
