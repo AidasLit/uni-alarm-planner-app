@@ -11,8 +11,9 @@ import kotlinx.serialization.json.Json
 class NotifRepository(
     private val notifDao: NotifDao
 ) {
-
-    val readAllData: LiveData<List<Notif>> = notifDao.getAllNotifs()
+    suspend fun getAllNotifs(): List<Notif>{
+        return notifDao.getAllNotifs()
+    }
 
     suspend fun addNotif(notif: Notif){
         notifDao.upsertNotif(notif)
