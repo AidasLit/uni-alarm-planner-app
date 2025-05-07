@@ -1,190 +1,213 @@
 package com.example.labworks
 
-import android.graphics.Typeface
-import android.graphics.drawable.GradientDrawable
 import android.os.Bundle
-import android.view.*
-import android.widget.*
-import androidx.core.content.ContextCompat
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.fragment.app.Fragment
-import com.example.labworks.R
-import java.lang.reflect.Array.set
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.labworks.database.NotifViewModel
+import com.example.labworks.database.data.Notif
 import java.text.SimpleDateFormat
 import java.util.*
 
 class WeekCalendarFragment : Fragment() {
 
-    private lateinit var weekTitle: TextView
-    private lateinit var previousButton: Button
-    private lateinit var nextButton: Button
-    private lateinit var weekContainer: LinearLayout
-
-    private var currentCalendar: Calendar = Calendar.getInstance()
-
-    private lateinit var rootView: View  // 👈 add this property to the class
-
     override fun onCreateView(
-        inflater: LayoutInflater, container: ViewGroup?,
+        inflater: android.view.LayoutInflater, container: android.view.ViewGroup?,
         savedInstanceState: Bundle?
-    ): View {
-        rootView = inflater.inflate(R.layout.week_calendar_fragment, container, false)
-
-        rootView.setBackgroundColor(android.graphics.Color.parseColor("#121212"))
-
-        weekTitle = rootView.findViewById(R.id.text_current_week)
-        previousButton = rootView.findViewById(R.id.button_previous_week)
-        nextButton = rootView.findViewById(R.id.button_next_week)
-        weekContainer = rootView.findViewById(R.id.week_grid_container)
-
-        styleButton(previousButton)
-        styleButton(nextButton)
-
-        updateWeekGrid(rootView) // ✅ now passes the root view
-
-        previousButton.setOnClickListener {
-            animateButtonBounce(previousButton)
-            currentCalendar.add(Calendar.WEEK_OF_YEAR, -1)
-            animateWeekChange(R.anim.slide_in_left, R.anim.slide_out_right)
+    ): android.view.View {
+        return ComposeView(requireContext()).apply {
+            setContent {
+                WeekCalendarScreen()
+            }
         }
-
-        nextButton.setOnClickListener {
-            animateButtonBounce(nextButton)
-            currentCalendar.add(Calendar.WEEK_OF_YEAR, 1)
-            animateWeekChange(R.anim.slide_in_right, R.anim.slide_out_left)
-        }
-
-        return rootView
     }
 
+    @Composable
+    fun WeekCalendarScreen() {
+        val currentWeek = remember { mutableStateOf(Calendar.getInstance().apply { set(Calendar.DAY_OF_WEEK, Calendar.MONDAY) }) }
+        val viewModel: NotifViewModel = viewModel()
+        var selectedNotif by remember { mutableStateOf<Notif?>(null) }
 
-    private fun styleButton(button: Button) {
-        val backgroundDrawable = GradientDrawable()
-        backgroundDrawable.setColor(android.graphics.Color.parseColor("#333333")) // Tamsus fonas
-        backgroundDrawable.cornerRadius = 12f
-        button.background = backgroundDrawable
-        button.setTextColor(android.graphics.Color.WHITE)
-    }
-
-    private fun updateWeekGrid(rootView: View) {
-        val gridContainer = rootView.findViewById<LinearLayout>(R.id.week_grid_container)
-        gridContainer.removeAllViews()
-
-        val context = requireContext()
-        val today = Calendar.getInstance()
-        val weekStart = currentCalendar.clone() as Calendar
-        weekStart.set(Calendar.DAY_OF_WEEK, Calendar.MONDAY)
-
-        // LEFT: Hours column
-        val hourColumn = LinearLayout(context).apply {
-            orientation = LinearLayout.VERTICAL
-            layoutParams = LinearLayout.LayoutParams(120, LinearLayout.LayoutParams.WRAP_CONTENT).apply {
-                setMargins(8, 0, 8, 0)
-            }
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(Color(0xFF121212))
+                .padding(top = 24.dp)
+        ) {
+            WeekNavigationBar(currentCalendar = currentWeek)
+            VerticalScrollGrid(
+                startOfWeek = currentWeek.value,
+                viewModel = viewModel,
+                onNotifSelected = { selectedNotif = it }
+            )
         }
 
-        // Add empty space on top for alignment with date headers
-        hourColumn.addView(TextView(context).apply {
-            text = ""
-            height = 100
-        })
-
-        for (hour in 0..23) {
-            hourColumn.addView(TextView(context).apply {
-                text = "$hour:00"
-                textSize = 14f
-                setTextColor(android.graphics.Color.GRAY)
-                setPadding(8, 8, 8, 8)
-                layoutParams = LinearLayout.LayoutParams(
-                    LinearLayout.LayoutParams.MATCH_PARENT,
-                    100
-                )
-            })
-        }
-        gridContainer.addView(hourColumn)
-
-        for (i in 0 until 7) {
-            val day = weekStart.clone() as Calendar
-            day.add(Calendar.DAY_OF_WEEK, i)
-
-            val column = LinearLayout(requireContext()).apply {
-                orientation = LinearLayout.VERTICAL
-                layoutParams = LinearLayout.LayoutParams(
-                    100,
-                    LinearLayout.LayoutParams.MATCH_PARENT
-                ).apply {
-                    setMargins(8, 0, 12, 0)
-                }
-            }
-
-            // Header
-            val header = TextView(requireContext()).apply {
-                text = SimpleDateFormat("EEE\ndd", Locale.getDefault()).format(day.time)
-                textAlignment = View.TEXT_ALIGNMENT_CENTER
-                setTextColor(android.graphics.Color.WHITE)
-                setTypeface(null, Typeface.BOLD)
-            }
-            column.addView(header)
-
-            // Time slots
-            for (hour in 0..23) {
-                val slot = TextView(requireContext()).apply {
-                    text = ""
-                    setBackgroundColor(android.graphics.Color.parseColor("#1E1E1E"))
-                    layoutParams = LinearLayout.LayoutParams(
-                        LinearLayout.LayoutParams.MATCH_PARENT,
-                        100
-                    )
-                    setOnClickListener {
-                        val time = (day.clone() as Calendar).apply {
-                            set(Calendar.HOUR_OF_DAY, hour)
-                        }.time
-                        val formatted = SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.getDefault()).format(time)
-                        Toast.makeText(context, "Clicked: $formatted", Toast.LENGTH_SHORT).show()
+        selectedNotif?.let { notif ->
+            AlertDialog(
+                onDismissRequest = { selectedNotif = null },
+                confirmButton = {
+                    TextButton(onClick = { selectedNotif = null }) {
+                        Text("Close")
                     }
+                },
+                title = { Text("Alarm Info", fontWeight = FontWeight.Bold) },
+                text = {
+                    Column {
+                        Text("Title: ${notif.title}")
+                        Text("Date: ${SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date(notif.timestamp))}")
+                        Text("Enabled: ${notif.enabled}")
+                    }
+                },
+                containerColor = Color(0xFF1E1E1E),
+                titleContentColor = Color.White,
+                textContentColor = Color.LightGray
+            )
+        }
+    }
 
+    @Composable
+    fun WeekNavigationBar(currentCalendar: MutableState<Calendar>) {
+        val weekStart = remember(currentCalendar.value) {
+            (currentCalendar.value.clone() as Calendar).apply {
+                set(Calendar.DAY_OF_WEEK, Calendar.MONDAY)
+            }
+        }
+        val weekEnd = (weekStart.clone() as Calendar).apply { add(Calendar.DAY_OF_MONTH, 6) }
+        val dateFormat = SimpleDateFormat("MMM dd", Locale.getDefault())
+        val yearFormat = SimpleDateFormat("yyyy", Locale.getDefault())
+
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 8.dp),
+            horizontalArrangement = Arrangement.Center,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Button(onClick = {
+                currentCalendar.value = (currentCalendar.value.clone() as Calendar).apply {
+                    add(Calendar.WEEK_OF_YEAR, -1)
                 }
-                column.addView(slot)
+            }) {
+                Text("←")
             }
 
-            gridContainer.addView(column)
+            Text(
+                text = "Week of ${dateFormat.format(weekStart.time)} – ${dateFormat.format(weekEnd.time)}, ${yearFormat.format(weekStart.time)}",
+                modifier = Modifier.weight(1f).padding(horizontal = 16.dp),
+                color = Color.White,
+                textAlign = TextAlign.Center,
+                fontWeight = FontWeight.Bold
+            )
+
+            Button(onClick = {
+                currentCalendar.value = (currentCalendar.value.clone() as Calendar).apply {
+                    add(Calendar.WEEK_OF_YEAR, 1)
+                }
+            }) {
+                Text("→")
+            }
+        }
+    }
+
+    @Composable
+    fun VerticalScrollGrid(
+        startOfWeek: Calendar,
+        viewModel: NotifViewModel,
+        onNotifSelected: (Notif) -> Unit
+    ) {
+        val today = Calendar.getInstance()
+        val hours = 0..23
+
+        val notifs by produceState(initialValue = emptyList<Notif>(), viewModel) {
+            value = viewModel.getAllNotifs()
         }
 
-
-
-
-    }
-
-    private fun animateWeekChange(enterAnim: Int, exitAnim: Int) {
-        val exitAnimation = android.view.animation.AnimationUtils.loadAnimation(requireContext(), exitAnim)
-        val enterAnimation = android.view.animation.AnimationUtils.loadAnimation(requireContext(), enterAnim)
-
-        exitAnimation.setAnimationListener(object : android.view.animation.Animation.AnimationListener {
-            override fun onAnimationStart(animation: android.view.animation.Animation?) {}
-            override fun onAnimationEnd(animation: android.view.animation.Animation?) {
-                updateWeekGrid(rootView) // ✅ use stored rootView
-                weekContainer.startAnimation(enterAnimation)
+        Row(
+            modifier = Modifier
+                .fillMaxHeight()
+                .verticalScroll(rememberScrollState())
+        ) {
+            Column(modifier = Modifier.width(40.dp)) {
+                Spacer(modifier = Modifier.height(32.dp))
+                hours.forEach { hour ->
+                    Box(
+                        modifier = Modifier
+                            .height(60.dp)
+                            .fillMaxWidth(),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = String.format("%02d:00", hour),
+                            fontSize = 12.sp,
+                            color = Color.Gray
+                        )
+                    }
+                }
             }
-            override fun onAnimationRepeat(animation: android.view.animation.Animation?) {}
-        })
 
-        weekContainer.startAnimation(exitAnimation)
-    }
+            repeat(7) { i ->
+                val day = (startOfWeek.clone() as Calendar).apply { add(Calendar.DAY_OF_WEEK, i) }
+                val isToday = today.get(Calendar.YEAR) == day.get(Calendar.YEAR) &&
+                        today.get(Calendar.DAY_OF_YEAR) == day.get(Calendar.DAY_OF_YEAR)
 
+                val formattedDay = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(day.time)
+                val notifForDay = notifs.find {
+                    SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date(it.timestamp)) == formattedDay && it.enabled
+                }
 
-    private fun animateButtonBounce(button: View) {
-        button.animate()
-            .scaleX(1.1f)
-            .scaleY(1.1f)
-            .setDuration(100)
-            .withEndAction {
-                button.animate()
-                    .scaleX(1f)
-                    .scaleY(1f)
-                    .setDuration(100)
-                    .start()
+                val columnColor = when {
+                    isToday -> Color(0xFF2E2E2E)
+                    notifForDay != null -> Color(0xFF2A3A5E) //highlighted notif
+                    else -> Color(0xFF1A1A1A)
+                }
+
+                Column(
+                    modifier = Modifier
+                        .width(53.dp)
+                        .background(columnColor)
+                        .clickable(enabled = notifForDay != null) {
+                            notifForDay?.let { onNotifSelected(it) }
+                        }
+                        .padding(horizontal = 4.dp)
+                ) {
+                    Text(
+                        text = SimpleDateFormat("EEE\ndd", Locale.getDefault()).format(day.time),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(32.dp),
+                        textAlign = TextAlign.Center,
+                        color = Color.White,
+                        fontWeight = FontWeight.Bold
+                    )
+
+                    for (hour in hours) {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(60.dp)
+                                .background(Color(0xFF292929))
+                                .padding(2.dp),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text("", color = Color.White)
+                        }
+                    }
+                }
             }
-            .start()
+        }
     }
-
-
 }

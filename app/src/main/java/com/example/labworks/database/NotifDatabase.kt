@@ -12,7 +12,7 @@ import com.example.labworks.database.data.NotifDao
 @Database(entities = [
     Notif::class,
     NotifComponent::class
-], version = 1, exportSchema = false)
+], version = 2, exportSchema = false)
 abstract class NotifDatabase : RoomDatabase() {
 
     abstract fun notifDao() : NotifDao
@@ -33,7 +33,8 @@ abstract class NotifDatabase : RoomDatabase() {
                         context.applicationContext,
                         NotifDatabase::class.java,
                         "notif_database"
-                    ).build()
+                    ).fallbackToDestructiveMigration()
+                        .build()
 
                     INSTANCE = instance
                     return instance

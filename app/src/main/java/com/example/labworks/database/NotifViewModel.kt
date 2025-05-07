@@ -43,4 +43,10 @@ class NotifViewModel(application: Application) : AndroidViewModel(application) {
         return repository.getAllNotifs()
     }
 
+    fun deleteNotif(notif: Notif) {
+        viewModelScope.launch(Dispatchers.IO) {
+            repository.deleteNotif(notif)
+        }
+    }
+
 }

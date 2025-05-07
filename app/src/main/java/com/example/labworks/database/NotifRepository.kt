@@ -26,4 +26,7 @@ class NotifRepository(
 
         notifDao.upsertComponent(toAdd)
     }
+    suspend fun deleteNotif(notif: Notif) {
+        notifDao.deleteNotif(notif)
+    }
 }
