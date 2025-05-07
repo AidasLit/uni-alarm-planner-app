@@ -4,13 +4,6 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.compose.animation.AnimatedContent
-import androidx.compose.animation.SizeTransform
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.slideInHorizontally
-import androidx.compose.animation.slideOutHorizontally
-import androidx.compose.animation.with
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -35,8 +28,14 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.labworks.database.NotifViewModel
+import com.example.labworks.database.data.Notif
+import java.text.SimpleDateFormat
+import java.time.Instant
 import java.time.LocalDate
 import java.time.YearMonth
+import java.time.ZoneId
 import java.time.format.TextStyle
 import java.util.*
 
@@ -47,9 +46,7 @@ class MonthCalendarFragment : Fragment() {
     ): View {
         return ComposeView(requireContext()).apply {
             setContent {
-                MaterialTheme(
-                    colorScheme = darkColorScheme() // Tamsus režimas
-                ) {
+                MaterialTheme(colorScheme = darkColorScheme()) {
                     Surface(
                         modifier = Modifier.fillMaxSize(),
                         color = MaterialTheme.colorScheme.background
@@ -61,16 +58,22 @@ class MonthCalendarFragment : Fragment() {
         }
     }
 }
-@OptIn(androidx.compose.animation.ExperimentalAnimationApi::class)
+
 @Composable
 fun CustomMonthCalendar() {
     val today = remember { LocalDate.now() }
     var selectedDate by remember { mutableStateOf<LocalDate?>(null) }
     var currentMonth by remember { mutableStateOf(YearMonth.now()) }
+    val viewModel: NotifViewModel = viewModel()
+    var selectedNotif by remember { mutableStateOf<Notif?>(null) }
+
+    var allNotifs by remember { mutableStateOf(emptyList<Notif>()) }
+    LaunchedEffect(Unit) {
+        allNotifs = viewModel.getAllNotifs()
+    }
 
     val screenHeight = LocalConfiguration.current.screenHeightDp.dp
     val calendarHeight = screenHeight - 200.dp
-
     val totalRows = 6
     val cellHeight = calendarHeight / totalRows
 
@@ -79,7 +82,6 @@ fun CustomMonthCalendar() {
             .fillMaxSize()
             .padding(horizontal = 12.dp, vertical = 16.dp)
     ) {
-        // Month header and buttons
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween,
@@ -101,7 +103,6 @@ fun CustomMonthCalendar() {
 
         Spacer(modifier = Modifier.height(8.dp))
 
-        // Weekday labels
         Row(Modifier.fillMaxWidth()) {
             listOf("S", "P", "A", "T", "K", "Pn", "Š").forEach {
                 Text(
@@ -116,67 +117,85 @@ fun CustomMonthCalendar() {
 
         Spacer(modifier = Modifier.height(8.dp))
 
-        // ✅ Animate only the calendar grid
-        AnimatedContent(
-            targetState = currentMonth,
-            transitionSpec = {
-                if (targetState > initialState) {
-                    slideInHorizontally { width -> width } + fadeIn() with
-                            slideOutHorizontally { width -> -width } + fadeOut()
-                } else {
-                    slideInHorizontally { width -> -width } + fadeIn() with
-                            slideOutHorizontally { width -> width } + fadeOut()
-                }.using(SizeTransform(clip = false))
-            },
+        val firstDayOffset = (currentMonth.atDay(1).dayOfWeek.value % 7)
+        val dates = buildList<LocalDate?> {
+            repeat(firstDayOffset) { add(null) }
+            for (day in 1..currentMonth.lengthOfMonth()) {
+                add(LocalDate.of(currentMonth.year, currentMonth.monthValue, day))
+            }
+        }
+
+        LazyVerticalGrid(
+            columns = GridCells.Fixed(7),
+            userScrollEnabled = false,
             modifier = Modifier
                 .fillMaxWidth()
                 .height(cellHeight * totalRows)
-        ) { animatedMonth ->
+        ) {
+            items(dates.size) { index ->
+                val date = dates[index]
+                val isSelected = date == selectedDate
+                val isToday = date == today
 
-            val firstDayOffset = (animatedMonth.atDay(1).dayOfWeek.value % 7)
-            val dates = buildList {
-                repeat(firstDayOffset) { add(null) }
-                for (day in 1..animatedMonth.lengthOfMonth()) {
-                    add(LocalDate.of(animatedMonth.year, animatedMonth.monthValue, day))
+                val matchingNotif = allNotifs.find { notif ->
+                    notif.enabled && LocalDate.ofInstant(
+                        Instant.ofEpochMilli(notif.timestamp),
+                        ZoneId.systemDefault()
+                    ) == date
                 }
-            }
 
-            LazyVerticalGrid(
-                columns = GridCells.Fixed(7),
-                userScrollEnabled = false,
-                modifier = Modifier.fillMaxSize()
-            ) {
-                items(dates.size) { index ->
-                    val date = dates[index]
-                    val isSelected = date == selectedDate
-                    val isToday = date == today
-
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(cellHeight)
-                            .border(BorderStroke(0.5.dp, Color.DarkGray))
-                            .background(
-                                when {
-                                    isSelected -> Color(0xFF3F51B5)
-                                    isToday -> Color(0xFF424242)
-                                    else -> Color(0xFF1E1E1E)
-                                }
-                            )
-                            .clickable {
-                                if (date != null) selectedDate = date
-                            },
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Text(
-                            text = date?.dayOfMonth?.toString() ?: "",
-                            color = Color.White,
-                            fontWeight = FontWeight.Bold,
-                            fontSize = 16.sp
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(cellHeight)
+                        .border(BorderStroke(0.5.dp, Color.DarkGray))
+                        .background(
+                            when {
+                                isSelected -> Color(0xFF3F51B5)
+                                isToday -> Color(0xFF424242)
+                                matchingNotif != null -> Color(0xFF2A3A5E)
+                                else -> Color(0xFF1E1E1E)
+                            }
                         )
-                    }
+                        .clickable {
+                            if (matchingNotif != null) {
+                                selectedNotif = matchingNotif
+                            } else if (date != null) {
+                                selectedDate = date
+                            }
+                        },
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = date?.dayOfMonth?.toString() ?: "",
+                        color = Color.White,
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 16.sp
+                    )
                 }
             }
         }
+    }
+
+    selectedNotif?.let { notif ->
+        AlertDialog(
+            onDismissRequest = { selectedNotif = null },
+            confirmButton = {
+                TextButton(onClick = { selectedNotif = null }) {
+                    Text("Close")
+                }
+            },
+            title = { Text("Alarm Info", fontWeight = FontWeight.Bold) },
+            text = {
+                Column {
+                    Text("Title: ${notif.title}")
+                    Text("Date: ${SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date(notif.timestamp))}")
+                    Text("Enabled: ${notif.enabled}")
+                }
+            },
+            containerColor = Color(0xFF1E1E1E),
+            titleContentColor = Color.White,
+            textContentColor = Color.LightGray
+        )
     }
 }
