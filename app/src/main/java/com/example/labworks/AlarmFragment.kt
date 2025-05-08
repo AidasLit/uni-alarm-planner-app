@@ -55,6 +55,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.ui.platform.LocalContext
 import java.text.SimpleDateFormat
 import java.util.Calendar
+import java.util.Date
 import java.util.Locale
 
 
@@ -171,7 +172,7 @@ fun AlarmScreen(
                 .padding(32.dp),
             onNewNotif = {
                 coroutineScope.launch {
-                    notifs = viewModel.getAllNotifs() // ✅ Reload list
+                    notifs = viewModel.getAllNotifs()
                 }
             }
         )

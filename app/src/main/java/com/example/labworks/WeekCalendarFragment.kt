@@ -22,6 +22,7 @@ import com.example.labworks.database.NotifViewModel
 import com.example.labworks.database.data.Notif
 import java.text.SimpleDateFormat
 import java.util.*
+import kotlin.time.Duration.Companion.hours
 
 class WeekCalendarFragment : Fragment() {
 
@@ -132,9 +133,13 @@ class WeekCalendarFragment : Fragment() {
         val today = Calendar.getInstance()
         val hours = 0..23
 
+        val startHourInt = 2
+        val endHourInt = 14
+
         val notifs by produceState(initialValue = emptyList<Notif>(), viewModel) {
             value = viewModel.getAllNotifs()
         }
+
 
         Row(
             modifier = Modifier
@@ -142,11 +147,11 @@ class WeekCalendarFragment : Fragment() {
                 .verticalScroll(rememberScrollState())
         ) {
             Column(modifier = Modifier.width(40.dp)) {
-                Spacer(modifier = Modifier.height(32.dp))
+                Spacer(modifier = Modifier.height(24.dp))
                 hours.forEach { hour ->
                     Box(
                         modifier = Modifier
-                            .height(60.dp)
+                            .height(43.dp)
                             .fillMaxWidth(),
                         contentAlignment = Alignment.Center
                     ) {
@@ -159,6 +164,7 @@ class WeekCalendarFragment : Fragment() {
                 }
             }
 
+
             repeat(7) { i ->
                 val day = (startOfWeek.clone() as Calendar).apply { add(Calendar.DAY_OF_WEEK, i) }
                 val isToday = today.get(Calendar.YEAR) == day.get(Calendar.YEAR) &&
@@ -169,16 +175,10 @@ class WeekCalendarFragment : Fragment() {
                     SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date(it.timestamp)) == formattedDay && it.enabled
                 }
 
-                val columnColor = when {
-                    isToday -> Color(0xFF2E2E2E)
-                    notifForDay != null -> Color(0xFF2A3A5E) //highlighted notif
-                    else -> Color(0xFF1A1A1A)
-                }
-
                 Column(
                     modifier = Modifier
                         .width(53.dp)
-                        .background(columnColor)
+                        .background(if (isToday) Color(0xFF2E2E2E) else Color(0xFF1A1A1A))
                         .clickable(enabled = notifForDay != null) {
                             notifForDay?.let { onNotifSelected(it) }
                         }
@@ -195,12 +195,15 @@ class WeekCalendarFragment : Fragment() {
                     )
 
                     for (hour in hours) {
+                        val isHighlightedHour = notifForDay != null && hour in startHourInt until endHourInt
+                        val slotColor = if (isHighlightedHour) Color(0xFF2A3A5E) else Color(0xFF292929)
+
                         Box(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .height(60.dp)
-                                .background(Color(0xFF292929))
-                                .padding(2.dp),
+                                .height(44.dp)
+                                .background(slotColor)
+                                .padding(8.dp),
                             contentAlignment = Alignment.Center
                         ) {
                             Text("", color = Color.White)
@@ -210,4 +213,6 @@ class WeekCalendarFragment : Fragment() {
             }
         }
     }
+
 }
+
