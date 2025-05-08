@@ -56,6 +56,9 @@ import androidx.compose.ui.platform.LocalContext
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Locale
+import android.app.TimePickerDialog
+import java.util.Date
+
 
 
 class AlarmFragment : Fragment() {
@@ -77,13 +80,11 @@ class AlarmFragment : Fragment() {
 }
 
 @Composable
-fun AlarmScreen(
-    viewModel: NotifViewModel = viewModel()
-) {
+fun AlarmScreen(viewModel: NotifViewModel = viewModel()) {
     val coroutineScope = rememberCoroutineScope()
     var notifs by remember { mutableStateOf<List<Notif>>(emptyList()) }
+    var selectedNotif by remember { mutableStateOf<Notif?>(null) }
 
-    // Fetch data once
     LaunchedEffect(Unit) {
         coroutineScope.launch {
             notifs = viewModel.getAllNotifs()
@@ -97,8 +98,6 @@ fun AlarmScreen(
     ) {
         Column(modifier = Modifier.fillMaxSize()) {
             AlarmHeader()
-
-            var selectedNotif by remember { mutableStateOf<Notif?>(null) }
 
             LazyColumn(
                 modifier = Modifier
@@ -115,19 +114,25 @@ fun AlarmScreen(
                         colors = CardDefaults.cardColors(containerColor = Color(0xFF1E1E1E)),
                         shape = RoundedCornerShape(12.dp)
                     ) {
-                        Row (
+                        Row(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .padding(16.dp),
                             horizontalArrangement = Arrangement.SpaceBetween,
                             verticalAlignment = Alignment.CenterVertically
                         ) {
-                            Text(
-                                text = notif.title,
-                                modifier = Modifier.padding(16.dp),
-                                color = Color.White,
-                                fontSize = 18.sp
-                            )
+                            Column {
+                                Text(
+                                    text = notif.title,
+                                    color = Color.White,
+                                    fontSize = 18.sp
+                                )
+                                Text(
+                                    text = SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.getDefault()).format(Date(notif.timestamp)),
+                                    color = Color.Gray,
+                                    fontSize = 14.sp
+                                )
+                            }
                             Switch(
                                 checked = isChecked,
                                 onCheckedChange = {
@@ -140,18 +145,15 @@ fun AlarmScreen(
                                     uncheckedThumbColor = Color.Gray
                                 )
                             )
-
-
                         }
-
-
                     }
                 }
             }
+
             if (selectedNotif != null) {
                 NotifDetailsDialog(
                     notif = selectedNotif!!,
-                    onDismiss = {selectedNotif = null},
+                    onDismiss = { selectedNotif = null },
                     onDelete = {
                         coroutineScope.launch {
                             viewModel.deleteNotif(it)
@@ -161,7 +163,6 @@ fun AlarmScreen(
                     }
                 )
             }
-
         }
 
         NotifButton(
@@ -171,12 +172,13 @@ fun AlarmScreen(
                 .padding(32.dp),
             onNewNotif = {
                 coroutineScope.launch {
-                    notifs = viewModel.getAllNotifs() // ✅ Reload list
+                    notifs = viewModel.getAllNotifs()
                 }
             }
         )
     }
 }
+
 
 @Composable
 fun NotifDetailsDialog(
@@ -201,7 +203,11 @@ fun NotifDetailsDialog(
                     color = Color.White,
                     fontWeight = FontWeight.Bold
                 )
-
+                Text(
+                    text = "Time: ${SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.getDefault()).format(Date(notif.timestamp))}",
+                    fontSize = 16.sp,
+                    color = Color.Gray
+                )
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceEvenly
@@ -217,6 +223,7 @@ fun NotifDetailsDialog(
         }
     }
 }
+
 
 
 
@@ -317,6 +324,7 @@ fun NotifCreateDialog(
 
     val calendar = remember { Calendar.getInstance() }
     var dateText by remember { mutableStateOf(SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(calendar.time)) }
+    var timeText by remember { mutableStateOf(SimpleDateFormat("HH:mm", Locale.getDefault()).format(calendar.time)) }
 
     val datePickerDialog = remember {
         DatePickerDialog(
@@ -328,6 +336,20 @@ fun NotifCreateDialog(
             calendar.get(Calendar.YEAR),
             calendar.get(Calendar.MONTH),
             calendar.get(Calendar.DAY_OF_MONTH)
+        )
+    }
+
+    val timePickerDialog = remember {
+        TimePickerDialog(
+            context,
+            { _, hourOfDay, minute ->
+                calendar.set(Calendar.HOUR_OF_DAY, hourOfDay)
+                calendar.set(Calendar.MINUTE, minute)
+                timeText = SimpleDateFormat("HH:mm", Locale.getDefault()).format(calendar.time)
+            },
+            calendar.get(Calendar.HOUR_OF_DAY),
+            calendar.get(Calendar.MINUTE),
+            true
         )
     }
 
@@ -354,9 +376,13 @@ fun NotifCreateDialog(
                 )
 
                 Text("Selected date: $dateText", color = Color.Gray)
-
                 Button(onClick = { datePickerDialog.show() }) {
                     Text("Pick Date")
+                }
+
+                Text("Selected time: $timeText", color = Color.Gray)
+                Button(onClick = { timePickerDialog.show() }) {
+                    Text("Pick Time")
                 }
 
                 Row(
@@ -374,6 +400,8 @@ fun NotifCreateDialog(
         }
     }
 }
+
+
 
 
 

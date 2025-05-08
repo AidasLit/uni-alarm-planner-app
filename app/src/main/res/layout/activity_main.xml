@@ -47,12 +47,26 @@
             android:layout_width="150dp"
             android:layout_height="150dp"
             android:layout_gravity="center"
-            android:src="@drawable/arrow"
+            android:src="@drawable/arrow2"
             android:layout_margin="0dp"
             android:pivotY="100%"
             android:pivotX="50%"
             android:scaleX="0.7"
             android:scaleY="0.7" />
+
+        <ImageView
+            android:id="@+id/hour_hand"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="@drawable/arrow"
+            android:layout_gravity="center"
+            android:layout_margin="0dp"
+            android:pivotY="100%"
+            android:pivotX="50%"
+            android:scaleX="0.5"
+            android:scaleY="0.5"/>
+
+
     </FrameLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

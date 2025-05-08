@@ -138,11 +138,13 @@ fun CustomMonthCalendar() {
                 val isToday = date == today
 
                 val matchingNotif = allNotifs.find { notif ->
-                    notif.enabled && LocalDate.ofInstant(
-                        Instant.ofEpochMilli(notif.timestamp),
-                        ZoneId.systemDefault()
-                    ) == date
+                    val notifDate = Instant.ofEpochMilli(notif.timestamp)
+                        .atZone(ZoneId.systemDefault())
+                        .toLocalDate()
+                    notif.enabled && notifDate == date
                 }
+
+
 
                 Box(
                     modifier = Modifier

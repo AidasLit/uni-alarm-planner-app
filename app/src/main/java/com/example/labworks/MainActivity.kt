@@ -11,6 +11,7 @@ import android.view.View
 import android.view.animation.AccelerateDecelerateInterpolator
 import android.view.animation.Animation
 import android.view.animation.AnimationUtils
+import android.view.animation.LinearInterpolator
 import android.view.animation.RotateAnimation
 import android.widget.FrameLayout
 import android.widget.ImageView
@@ -24,7 +25,9 @@ class MainActivity : AppCompatActivity() {
 
     private var currentTabIndex = 0
     private lateinit var compassArrow: ImageView
+    private lateinit var hourHand: ImageView
     private lateinit var navView: BottomNavigationView
+
 
     private val tabOrder = listOf(
         R.id.nav_month_calendar,
@@ -107,25 +110,59 @@ class MainActivity : AppCompatActivity() {
 
     private fun trySetupCompass() {
         try {
-            compassArrow = findViewById(R.id.arrow_image)
+            compassArrow = findViewById(R.id.hour_hand)
+            hourHand = findViewById(R.id.arrow_image)
             startCompassRotation()
+            startHourHandRotation()
         } catch (e: Exception) {
-            // Ignore if arrow not present
+            // Ignore if arrows not present
         }
     }
 
+    private fun trySetupCompasss() {
+        try {
+            compassArrow = findViewById(R.id.arrow_image)
+            hourHand = findViewById(R.id.hour_hand)
+            startCompassRotation()
+            startHourHandRotation()
+        } catch (e: Exception) {
+            // Ignore if arrows not present
+        }
+    }
+
+
     private fun startCompassRotation() {
         val rotateAnimation = RotateAnimation(
-            0f, 720f,
+            0f, 360f,
             Animation.RELATIVE_TO_SELF, 0.5f,
             Animation.RELATIVE_TO_SELF, 0.5f
         )
-        rotateAnimation.duration = 2000
-        rotateAnimation.interpolator = AccelerateDecelerateInterpolator()
+        //rotateAnimation.duration = 1000L
+        //rotateAnimation.interpolator = AccelerateDecelerateInterpolator()
+        //rotateAnimation.fillAfter = true
+
+        rotateAnimation.duration = 470L
+        rotateAnimation.interpolator = LinearInterpolator()
+        rotateAnimation.repeatCount = Animation.INFINITE
         rotateAnimation.fillAfter = true
 
         compassArrow.startAnimation(rotateAnimation)
     }
+
+    private fun startHourHandRotation() {
+        val rotateAnimation = RotateAnimation(
+            0f, 360f,
+            Animation.RELATIVE_TO_SELF, 0.5f,
+            Animation.RELATIVE_TO_SELF, 0.5f
+        )
+        rotateAnimation.duration = 6000L
+        rotateAnimation.interpolator = LinearInterpolator()
+        rotateAnimation.repeatCount = Animation.INFINITE
+        rotateAnimation.fillAfter = true
+
+        hourHand.startAnimation(rotateAnimation)
+    }
+
 
     private fun throwNotification(notificationId: Int) {
         if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.POST_NOTIFICATIONS)
