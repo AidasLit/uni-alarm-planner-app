@@ -134,7 +134,7 @@ fun CustomMonthCalendar() {
         ) {
             items(dates.size) { index ->
                 val date = dates[index]
-                val isSelected = date == selectedDate
+                val isSelected = date == selectedDate && date != null
                 val isToday = date == today
 
                 val matchingNotif = allNotifs.find { notif ->
