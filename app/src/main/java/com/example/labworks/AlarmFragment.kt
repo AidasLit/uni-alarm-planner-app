@@ -196,6 +196,7 @@ fun NotifDetailsDialog(
                 modifier = Modifier.padding(24.dp),
                 verticalArrangement = Arrangement.spacedBy(16.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
+
             ) {
                 Text(
                     text = "Alarm: ${notif.title}",
@@ -208,6 +209,9 @@ fun NotifDetailsDialog(
                     fontSize = 16.sp,
                     color = Color.Gray
                 )
+                notif.description?.takeIf { it.isNotBlank() }?.let {
+                    Text("Description: $it", fontSize = 16.sp, color = Color.LightGray)
+                }
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceEvenly
@@ -219,6 +223,7 @@ fun NotifDetailsDialog(
                         Text("Delete", color = Color.Red)
                     }
                 }
+
             }
         }
     }
@@ -288,8 +293,8 @@ fun NotifButton(
     if (showDialog.value) {
         NotifCreateDialog(
             onDismissRequest = { showDialog.value = false },
-            onConfirmation = { title, timestamp ->
-                val newNotif = Notif(title, timestamp)
+            onConfirmation = { title, timestamp, description, startHour, endHour ->
+                val newNotif = Notif(title, timestamp, description, startHour, endHour)
                 viewModel.addNotif(newNotif)
                 onNewNotif()
                 showDialog.value = false
@@ -317,7 +322,7 @@ fun NotifButton(
 @Composable
 fun NotifCreateDialog(
     onDismissRequest: () -> Unit = {},
-    onConfirmation: (title: String, timestamp: Long) -> Unit = { _, _ -> }
+    onConfirmation: (title: String, timestamp: Long, discription: String,startHour: Int, endHour: Int) -> Unit = { _, _, _, _, _ -> }
 ) {
     var newTitle by remember { mutableStateOf("") }
     val context = LocalContext.current
@@ -325,6 +330,25 @@ fun NotifCreateDialog(
     val calendar = remember { Calendar.getInstance() }
     var dateText by remember { mutableStateOf(SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(calendar.time)) }
     var timeText by remember { mutableStateOf(SimpleDateFormat("HH:mm", Locale.getDefault()).format(calendar.time)) }
+
+    var startHour by remember { mutableStateOf(8) }
+    var endHour by remember { mutableStateOf(9) }
+
+    val startTimePicker = remember {
+        TimePickerDialog(
+            context,
+            {_, hour, _ -> startHour = hour},
+            startHour, 0, true
+        )
+    }
+
+    val endTimePicker = remember {
+        TimePickerDialog(
+            context,
+            {_, hour, _ -> endHour = hour},
+            endHour, 0, true
+        )
+    }
 
     val datePickerDialog = remember {
         DatePickerDialog(
@@ -375,6 +399,17 @@ fun NotifCreateDialog(
                     label = { Text("Enter Alarm title") }
                 )
 
+                var description by remember { mutableStateOf("") }
+
+                OutlinedTextField(
+                    value = description,
+                    onValueChange = { description = it },
+                    label = { Text("Optional Description") },
+                    singleLine = false,
+                    maxLines = 3,
+                    modifier = Modifier.fillMaxWidth()
+                )
+
                 Text("Selected date: $dateText", color = Color.Gray)
                 Button(onClick = { datePickerDialog.show() }) {
                     Text("Pick Date")
@@ -385,17 +420,28 @@ fun NotifCreateDialog(
                     Text("Pick Time")
                 }
 
+                Text("Start time: ${"%02d:00".format(startHour)}", color = Color.Gray)
+                Button(onClick = { startTimePicker.show() }) {
+                    Text("Pick Start Time")
+                }
+
+                Text("End time: ${"%02d:00".format(endHour)}", color = Color.Gray)
+                Button(onClick = { endTimePicker.show() }) {
+                    Text("Pick End Time")
+                }
+
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.End,
                 ) {
                     TextButton(onClick = onDismissRequest) { Text("Cancel") }
                     TextButton(onClick = {
-                        onConfirmation(newTitle, calendar.timeInMillis)
+                        onConfirmation(newTitle, calendar.timeInMillis, description, startHour, endHour)
                     }) {
                         Text("Add")
                     }
                 }
+
             }
         }
     }

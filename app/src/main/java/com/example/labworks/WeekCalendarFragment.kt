@@ -70,6 +70,8 @@ class WeekCalendarFragment : Fragment() {
                         Text("Title: ${notif.title}")
                         Text("Date: ${SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date(notif.timestamp))}")
                         Text("Enabled: ${notif.enabled}")
+                        Text("Start Hour: ${notif.startHour}:00")
+                        Text("End Hour: ${notif.endHour}:00")
                     }
                 },
                 containerColor = Color(0xFF1E1E1E),
@@ -169,16 +171,13 @@ class WeekCalendarFragment : Fragment() {
                     SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date(it.timestamp)) == formattedDay && it.enabled
                 }
 
-                val columnColor = when {
-                    isToday -> Color(0xFF2E2E2E)
-                    notifForDay != null -> Color(0xFF2A3A5E) //highlighted notif
-                    else -> Color(0xFF1A1A1A)
-                }
+                val startHourInt = notifForDay?.startHour ?: -1
+                val endHourInt = notifForDay?.endHour ?: -1
 
                 Column(
                     modifier = Modifier
                         .width(53.dp)
-                        .background(columnColor)
+                        .background(if (isToday) Color(0xFF2E2E2E) else Color(0xFF1A1A1A))
                         .clickable(enabled = notifForDay != null) {
                             notifForDay?.let { onNotifSelected(it) }
                         }
@@ -195,11 +194,14 @@ class WeekCalendarFragment : Fragment() {
                     )
 
                     for (hour in hours) {
+                        val isHighlightedHour = notifForDay != null && hour in startHourInt until 9
+                        val slotColor = if (isHighlightedHour) Color(0xFF3C6ED0) else Color(0xFF292929)
+
                         Box(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .height(60.dp)
-                                .background(Color(0xFF292929))
+                                .background(slotColor)
                                 .padding(2.dp),
                             contentAlignment = Alignment.Center
                         ) {
