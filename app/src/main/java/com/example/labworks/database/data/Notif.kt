@@ -7,7 +7,10 @@ import androidx.room.PrimaryKey
 @Entity(tableName = "notifs")
 data class Notif(
     val title : String = "",
-    val timestamp: Long
+    val timestamp: Long,
+    val description: String? = null,
+    val startHour: Int = 0,
+    val endHour: Int = 0
 ) {
 
     @PrimaryKey(autoGenerate = true)
