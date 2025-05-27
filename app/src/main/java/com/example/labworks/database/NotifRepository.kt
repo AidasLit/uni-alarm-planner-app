@@ -29,4 +29,9 @@ class NotifRepository(
     suspend fun deleteNotif(notif: Notif) {
         notifDao.deleteNotif(notif)
     }
+    suspend fun addNotifAndReturn(notif: Notif): Long {
+        return notifDao.insertNotifAndReturnId(notif)
+    }
+
+
 }

@@ -3,6 +3,7 @@ package com.example.labworks.database.data
 import androidx.lifecycle.LiveData
 import androidx.room.Dao
 import androidx.room.Delete
+import androidx.room.Insert
 import androidx.room.Query
 import androidx.room.Upsert
 
@@ -31,4 +32,8 @@ interface NotifDao {
 
     @Delete
     suspend fun deleteComponent(component: NotifComponent)
+
+    // Existing methods
+    @Insert
+    suspend fun insertNotifAndReturnId(notif: Notif): Long
 }
