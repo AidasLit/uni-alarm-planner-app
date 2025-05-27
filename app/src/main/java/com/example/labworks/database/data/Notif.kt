@@ -12,6 +12,7 @@ data class Notif(
     val description: String? = null,
     val startHour: Int = 0,
     val endHour: Int = 0,
+    val repeatIntervalMillis: Long? = null, // null = no repeat
     var enabled: Boolean = true
 ) {
 

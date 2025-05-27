@@ -55,6 +55,7 @@ dependencies {
     implementation("androidx.room:room-ktx:2.6.1") {
         exclude(group = "com.google.guava", module = "listenablefuture")
     }
+    implementation("androidx.navigation:navigation-compose:2.5.3")
     implementation("androidx.cardview:cardview:1.0.0")
     implementation("com.google.guava:guava:31.1-android")
     implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.8.7")
@@ -65,6 +66,7 @@ dependencies {
     implementation("androidx.compose.ui:ui-graphics")
     implementation("androidx.databinding:compiler:3.2.0-alpha11")
     implementation("androidx.activity:activity:1.10.1")
+    implementation("androidx.navigation:navigation-runtime-android:2.9.0")
     testImplementation("junit:junit:4.13.2")
     androidTestImplementation("androidx.test.ext:junit:1.2.1")
     androidTestImplementation("androidx.test.espresso:espresso-core:3.6.1")

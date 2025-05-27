@@ -12,7 +12,7 @@ import com.example.labworks.database.data.NotifDao
 @Database(entities = [
     Notif::class,
     NotifComponent::class
-], version = 4, exportSchema = false)
+], version = 5, exportSchema = false)
 abstract class NotifDatabase : RoomDatabase() {
 
     abstract fun notifDao() : NotifDao
