@@ -289,16 +289,18 @@ fun NotifButton(
     onNewNotif: () -> Unit
 ) {
     val showDialog = remember { mutableStateOf(false) }
+    val context = LocalContext.current
 
     if (showDialog.value) {
         NotifCreateDialog(
             onDismissRequest = { showDialog.value = false },
             onConfirmation = { title, timestamp, description, startHour, endHour ->
-                val newNotif = Notif(title, timestamp, description, startHour, endHour)
-                viewModel.addNotif(newNotif)
+                val newNotif = Notif(0, title, timestamp, description, startHour, endHour, true)
+                viewModel.addAndSchedule(context, newNotif)
                 onNewNotif()
                 showDialog.value = false
             }
+
         )
     }
 

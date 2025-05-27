@@ -1,8 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
+    <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
 
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <uses-permission android:name="android.permission.VIBRATE" />
+
 
     <application
         android:allowBackup="true"
@@ -14,6 +17,18 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.LabWorks"
         tools:targetApi="31">
+
+        <receiver android:name=".AlarmReceiver" android:exported="false"/>
+
+        <activity
+            android:name=".AlarmActivity"
+            android:exported="true"
+            android:launchMode="singleInstance"
+            android:showWhenLocked="true"
+            android:turnScreenOn="true"
+            android:theme="@android:style/Theme.DeviceDefault.NoActionBar" />
+
+
         <activity
             android:name=".NotifManage"
             android:exported="false"
