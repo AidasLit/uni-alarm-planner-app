@@ -294,13 +294,20 @@ fun NotifButton(
     if (showDialog.value) {
         NotifCreateDialog(
             onDismissRequest = { showDialog.value = false },
-            onConfirmation = { title, timestamp, description, startHour, endHour ->
-                val newNotif = Notif(0, title, timestamp, description, startHour, endHour, true)
+            onConfirmation = { title, timestamp, description, startHour, endHour, repeatIntervalMillis ->
+                val newNotif = Notif(
+                    title = title,
+                    timestamp = timestamp,
+                    description = description,
+                    startHour = startHour,
+                    endHour = endHour,
+                    repeatIntervalMillis = repeatIntervalMillis,
+                    enabled = true
+                )
                 viewModel.addAndSchedule(context, newNotif)
                 onNewNotif()
                 showDialog.value = false
             }
-
         )
     }
 
@@ -324,7 +331,14 @@ fun NotifButton(
 @Composable
 fun NotifCreateDialog(
     onDismissRequest: () -> Unit = {},
-    onConfirmation: (title: String, timestamp: Long, discription: String,startHour: Int, endHour: Int) -> Unit = { _, _, _, _, _ -> }
+    onConfirmation: (
+        title: String,
+        timestamp: Long,
+        description: String,
+        startHour: Int,
+        endHour: Int,
+        repeatIntervalMillis: Long?
+    ) -> Unit = { _, _, _, _, _, _ -> }
 ) {
     var newTitle by remember { mutableStateOf("") }
     val context = LocalContext.current
@@ -401,6 +415,32 @@ fun NotifCreateDialog(
                     label = { Text("Enter Alarm title") }
                 )
 
+                val repeatOptions = listOf("No Repeat", "Hourly", "Daily", "Weekly")
+                val repeatValues = listOf(null, 60 * 60 * 1000L, 24 * 60 * 60 * 1000L, 7 * 24 * 60 * 60 * 1000L)
+
+                var expanded by remember { mutableStateOf(false) }
+                var selectedRepeatIndex by remember { mutableStateOf(0) }
+
+                Text("Repeat:", color = Color.Gray)
+                Box {
+                    Button(onClick = { expanded = true }) {
+                        Text(repeatOptions[selectedRepeatIndex])
+                    }
+
+                    DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
+                        repeatOptions.forEachIndexed { index, label ->
+                            DropdownMenuItem(
+                                text = { Text(label) },
+                                onClick = {
+                                    selectedRepeatIndex = index
+                                    expanded = false
+                                }
+                            )
+                        }
+                    }
+                }
+
+
                 var description by remember { mutableStateOf("") }
 
                 OutlinedTextField(
@@ -438,10 +478,12 @@ fun NotifCreateDialog(
                 ) {
                     TextButton(onClick = onDismissRequest) { Text("Cancel") }
                     TextButton(onClick = {
-                        onConfirmation(newTitle, calendar.timeInMillis, description, startHour, endHour)
+                        val repeatMillis = repeatValues[selectedRepeatIndex]
+                        onConfirmation(newTitle, calendar.timeInMillis, description, startHour, endHour, repeatMillis)
                     }) {
                         Text("Add")
                     }
+
                 }
 
             }

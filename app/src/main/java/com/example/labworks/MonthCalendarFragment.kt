@@ -51,7 +51,7 @@ class MonthCalendarFragment : Fragment() {
                         modifier = Modifier.fillMaxSize(),
                         color = MaterialTheme.colorScheme.background
                     ) {
-                        CustomMonthCalendar()
+                        CustomMonthCalendar(this@MonthCalendarFragment) // pass the fragment
                     }
                 }
             }
@@ -59,8 +59,9 @@ class MonthCalendarFragment : Fragment() {
     }
 }
 
+
 @Composable
-fun CustomMonthCalendar() {
+fun CustomMonthCalendar(fragment: Fragment) {
     val today = remember { LocalDate.now() }
     var selectedDate by remember { mutableStateOf<LocalDate?>(null) }
     var currentMonth by remember { mutableStateOf(YearMonth.now()) }
@@ -137,14 +138,13 @@ fun CustomMonthCalendar() {
                 val isSelected = date == selectedDate
                 val isToday = date == today
 
-                val matchingNotif = allNotifs.find { notif ->
+                // Find all notifs for that day
+                val matchingNotifs = allNotifs.filter { notif ->
                     val notifDate = Instant.ofEpochMilli(notif.timestamp)
                         .atZone(ZoneId.systemDefault())
                         .toLocalDate()
                     notif.enabled && notifDate == date
                 }
-
-
 
                 Box(
                     modifier = Modifier
@@ -155,15 +155,18 @@ fun CustomMonthCalendar() {
                             when {
                                 isSelected -> Color(0xFF3F51B5)
                                 isToday -> Color(0xFF424242)
-                                matchingNotif != null -> Color(0xFF2A3A5E)
+                                matchingNotifs.isNotEmpty() -> Color(0xFF2A3A5E)
                                 else -> Color(0xFF1E1E1E)
                             }
                         )
-                        .clickable {
-                            if (matchingNotif != null) {
-                                selectedNotif = matchingNotif
-                            } else if (date != null) {
-                                selectedDate = date
+                        .clickable(enabled = matchingNotifs.isNotEmpty()) {
+                            date?.let {
+                                val dayStartMillis = it.atStartOfDay(ZoneId.systemDefault()).toInstant().toEpochMilli()
+                                val dayFragment = DayNotificationsFragment.newInstance(dayStartMillis)
+                                fragment.parentFragmentManager.beginTransaction()
+                                    .replace(R.id.fragment_container, dayFragment)
+                                    .addToBackStack(null)
+                                    .commit()
                             }
                         },
                     contentAlignment = Alignment.Center
@@ -177,27 +180,5 @@ fun CustomMonthCalendar() {
                 }
             }
         }
-    }
-
-    selectedNotif?.let { notif ->
-        AlertDialog(
-            onDismissRequest = { selectedNotif = null },
-            confirmButton = {
-                TextButton(onClick = { selectedNotif = null }) {
-                    Text("Close")
-                }
-            },
-            title = { Text("Alarm Info", fontWeight = FontWeight.Bold) },
-            text = {
-                Column {
-                    Text("Title: ${notif.title}")
-                    Text("Date: ${SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date(notif.timestamp))}")
-                    Text("Enabled: ${notif.enabled}")
-                }
-            },
-            containerColor = Color(0xFF1E1E1E),
-            titleContentColor = Color.White,
-            textContentColor = Color.LightGray
-        )
     }
 }

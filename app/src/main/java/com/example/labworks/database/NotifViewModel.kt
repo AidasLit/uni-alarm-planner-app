@@ -65,22 +65,22 @@ class NotifViewModel(application: Application) : AndroidViewModel(application) {
 
     fun scheduleAlarm(context: Context, notif: Notif) {
         val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
-        Log.d("AlarmDebug", "Scheduling alarm for: ${Date(notif.timestamp)}")
 
-
-        // Check and request permission on Android 12+ (API 31+)
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-            if (!alarmManager.canScheduleExactAlarms()) {
-                val intent = Intent(Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM)
-                intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK
-                context.startActivity(intent) // 🚨 Will crash if called from non-activity context on some devices
-                return
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S && !alarmManager.canScheduleExactAlarms()) {
+            val intent = Intent(Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM).apply {
+                flags = Intent.FLAG_ACTIVITY_NEW_TASK
             }
+            context.startActivity(intent)
+            return
         }
 
         val intent = Intent(context, AlarmReceiver::class.java).apply {
             putExtra("title", notif.title)
             putExtra("description", notif.description ?: "")
+            putExtra("notifId", notif.id)
+            if (notif.repeatIntervalMillis != null) {
+                putExtra("repeatIntervalMillis", notif.repeatIntervalMillis)
+            }
         }
 
         val pendingIntent = PendingIntent.getBroadcast(
@@ -90,12 +90,22 @@ class NotifViewModel(application: Application) : AndroidViewModel(application) {
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
 
-        alarmManager.setExactAndAllowWhileIdle(
-            AlarmManager.RTC_WAKEUP,
-            notif.timestamp,
-            pendingIntent
-        )
+        if (notif.repeatIntervalMillis != null) {
+            alarmManager.setRepeating(
+                AlarmManager.RTC_WAKEUP,
+                notif.timestamp,
+                notif.repeatIntervalMillis,
+                pendingIntent
+            )
+        } else {
+            alarmManager.setExactAndAllowWhileIdle(
+                AlarmManager.RTC_WAKEUP,
+                notif.timestamp,
+                pendingIntent
+            )
+        }
     }
+
 
     fun addAndSchedule(context: Context, notif: Notif) {
         viewModelScope.launch(Dispatchers.IO) {

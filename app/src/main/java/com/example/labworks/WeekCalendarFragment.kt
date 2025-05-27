@@ -52,7 +52,14 @@ class WeekCalendarFragment : Fragment() {
             VerticalScrollGrid(
                 startOfWeek = currentWeek.value,
                 viewModel = viewModel,
-                onNotifSelected = { selectedNotif = it }
+                onNotifSelected = { notif ->
+                    val fragment = DayNotificationsFragment.newInstance(notif.timestamp)
+                    parentFragmentManager.beginTransaction()
+                        .replace(R.id.fragment_container, fragment) // Make sure you have a FrameLayout with this ID
+                        .addToBackStack(null)
+                        .commit()
+                }
+
             )
         }
 

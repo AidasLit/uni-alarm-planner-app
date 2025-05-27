@@ -1,12 +1,10 @@
 package com.example.labworks
 
-import android.app.NotificationChannel
-import android.app.NotificationManager
-import android.app.PendingIntent
-import android.content.BroadcastReceiver
-import android.content.Context
-import android.content.Intent
+import android.app.*
+import android.content.*
 import android.content.pm.PackageManager
+import android.media.RingtoneManager
+import android.net.Uri
 import android.os.Build
 import android.util.Log
 import androidx.core.app.NotificationCompat
@@ -19,9 +17,15 @@ class AlarmReceiver : BroadcastReceiver() {
 
         Log.d("AlarmReceiver", "Alarm fired: $title - $description")
 
-        val channelId = "alarm_channel"
+        // Load custom sound URI from SharedPreferences
+        val prefs = context.getSharedPreferences("AppPrefs", Context.MODE_PRIVATE)
+        val soundUriString = prefs.getString("alarmSound", null)
+        val soundUri: Uri? = soundUriString?.let { Uri.parse(it) }
 
-        // Prepare intent for full-screen activity
+        // Use dynamic channel ID based on sound
+        val channelId = "alarm_channel_${soundUri?.hashCode() ?: "default"}"
+
+        // Prepare full-screen intent
         val fullScreenIntent = Intent(context, AlarmActivity::class.java).apply {
             flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
             putExtra("title", title)
@@ -35,7 +39,7 @@ class AlarmReceiver : BroadcastReceiver() {
             PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
         )
 
-        // Create notification channel for Android 8+
+        // Create notification channel
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val channel = NotificationChannel(
                 channelId,
@@ -45,6 +49,9 @@ class AlarmReceiver : BroadcastReceiver() {
                 setDescription("Channel for alarm notifications")
                 enableVibration(true)
                 vibrationPattern = longArrayOf(0, 500, 250, 500)
+                soundUri?.let {
+                    setSound(it, Notification.AUDIO_ATTRIBUTES_DEFAULT)
+                }
             }
 
             val manager =
@@ -52,7 +59,8 @@ class AlarmReceiver : BroadcastReceiver() {
             manager.createNotificationChannel(channel)
         }
 
-        val notification = NotificationCompat.Builder(context, channelId)
+        // Build notification
+        val notificationBuilder = NotificationCompat.Builder(context, channelId)
             .setSmallIcon(R.drawable.ic_launcher_foreground)
             .setContentTitle(title)
             .setContentText(description)
@@ -61,9 +69,13 @@ class AlarmReceiver : BroadcastReceiver() {
             .setAutoCancel(true)
             .setVibrate(longArrayOf(0, 500, 250, 500))
             .setFullScreenIntent(fullScreenPendingIntent, true)
-            .build()
 
-        // Show notification if permission granted
+        // Set custom sound (for pre-Oreo or fallback)
+        soundUri?.let { notificationBuilder.setSound(it) }
+
+        val notification = notificationBuilder.build()
+
+        // Show notification
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU ||
             context.checkSelfPermission(android.Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED
         ) {
@@ -76,7 +88,37 @@ class AlarmReceiver : BroadcastReceiver() {
             Log.e("AlarmReceiver", "Notification not shown: missing POST_NOTIFICATIONS permission")
         }
 
-        // ✅ Force showing the full-screen activity
+        // Launch full-screen alarm activity
         context.startActivity(fullScreenIntent)
+
+        // Handle repeating alarm
+        val repeatInterval = intent?.getLongExtra("repeatIntervalMillis", -1L) ?: -1L
+        val notifId = intent?.getLongExtra("notifId", -1L) ?: -1L
+
+        if (repeatInterval > 0 && notifId >= 0) {
+            val nextTriggerTime = System.currentTimeMillis() + repeatInterval
+            val repeatIntent = Intent(context, AlarmReceiver::class.java).apply {
+                putExtra("title", title)
+                putExtra("description", description)
+                putExtra("notifId", notifId)
+                putExtra("repeatIntervalMillis", repeatInterval)
+            }
+
+            val repeatPendingIntent = PendingIntent.getBroadcast(
+                context,
+                notifId.toInt(),
+                repeatIntent,
+                PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+            )
+
+            val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
+            alarmManager.setExactAndAllowWhileIdle(
+                AlarmManager.RTC_WAKEUP,
+                nextTriggerTime,
+                repeatPendingIntent
+            )
+
+            Log.d("AlarmReceiver", "Next repeating alarm scheduled for: $nextTriggerTime")
+        }
     }
 }
