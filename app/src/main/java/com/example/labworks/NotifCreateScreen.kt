@@ -2,15 +2,25 @@ package com.example.labworks
 
 import android.app.DatePickerDialog
 import android.app.TimePickerDialog
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.example.labworks.database.data.Notif
 import java.text.SimpleDateFormat
 import java.util.*
@@ -24,26 +34,21 @@ fun NotifCreateScreen(
     passedLat: Double? = null,
     passedLng: Double? = null
 ) {
-    var title by remember { mutableStateOf("") }
-    var description by remember { mutableStateOf("") }
+    var title by remember { mutableStateOf(TextFieldValue("")) }
+    var description by remember { mutableStateOf(TextFieldValue("")) }
 
     val context = LocalContext.current
     val calendar = remember { Calendar.getInstance() }
 
     var dateText by remember {
-        mutableStateOf(
-            SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(calendar.time)
-        )
+        mutableStateOf(SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(calendar.time))
     }
     var timeText by remember {
-        mutableStateOf(
-            SimpleDateFormat("HH:mm", Locale.getDefault()).format(calendar.time)
-        )
+        mutableStateOf(SimpleDateFormat("HH:mm", Locale.getDefault()).format(calendar.time))
     }
 
     val selectedLat = passedLat
     val selectedLng = passedLng
-
 
     var startHour by remember { mutableStateOf(8) }
     var endHour by remember { mutableStateOf(9) }
@@ -63,59 +68,30 @@ fun NotifCreateScreen(
         }, calendar.get(Calendar.HOUR_OF_DAY), calendar.get(Calendar.MINUTE), true)
     }
 
+    val scrollState = rememberScrollState()
+
     Scaffold(
+        containerColor = Color(0xFF121212),
         topBar = {
             TopAppBar(
-                title = { Text("Create Notification") },
+                title = {
+                    Text("Create Notification", color = Color.White, fontSize = 22.sp, fontWeight = FontWeight.Bold)
+                },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Back")
+                        Icon(Icons.Default.ArrowBack, contentDescription = "Back", tint = Color.White)
                     }
-                }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = Color(0xFF121212))
             )
-        }
-    ) { padding ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(padding)
-                .padding(16.dp),
-            verticalArrangement = Arrangement.Center,
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            OutlinedTextField(value = title, onValueChange = { title = it }, label = { Text("Title") })
-            OutlinedTextField(value = description, onValueChange = { description = it }, label = { Text("Description") })
-
-            Text("Date: $dateText")
-            Button(onClick = { datePicker.show() }) { Text("Pick Date") }
-
-            Text("Time: $timeText")
-            Button(onClick = { timePicker.show() }) { Text("Pick Time") }
-
-            Text("Start: ${"%02d:00".format(startHour)}")
-            Button(onClick = {
-                TimePickerDialog(context, { _, hour, _ -> startHour = hour }, startHour, 0, true).show()
-            }) { Text("Pick Start Hour") }
-
-            Text("End: ${"%02d:00".format(endHour)}")
-            Button(onClick = {
-                TimePickerDialog(context, { _, hour, _ -> endHour = hour }, endHour, 0, true).show()
-            }) { Text("Pick End Hour") }
-
-            Button(onClick = { onLaunchMap() })
-            {
-                Text("Pick Location")
-            }
-
-            Text("Location: ${selectedLat ?: "-"}, ${selectedLng ?: "-"}")
-
+        },
+        bottomBar = {
             Button(
-                modifier = Modifier.align(Alignment.CenterHorizontally),
                 onClick = {
                     onDone(
                         Notif(
-                            title = title,
-                            description = description,
+                            title = title.text,
+                            description = description.text,
                             timestamp = calendar.timeInMillis,
                             startHour = startHour,
                             endHour = endHour,
@@ -125,10 +101,138 @@ fun NotifCreateScreen(
                             longitude = selectedLng
                         )
                     )
-                }
+                },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(90.dp)
+                    .padding(16.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = Color.DarkGray,
+                    contentColor = Color.White
+                ),
+                shape = RoundedCornerShape(10.dp)
             ) {
-                Text("Create Alarm")
+                Text("Create Alarm", fontSize = 18.sp, fontWeight = FontWeight.Bold)
             }
         }
+    ) { padding ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(padding)
+                .padding(horizontal = 16.dp)
+                .verticalScroll(scrollState) // Pritaikome slinkimą visam turiniui
+        ) {
+            Spacer(modifier = Modifier.height(12.dp))
+
+            StyledTextField(
+                value = title,
+                onValueChange = { title = it },
+                placeholder = "Title"
+            )
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            StyledTextField(
+                value = description,
+                onValueChange = { description = it },
+                placeholder = "Description"
+            )
+
+            Spacer(modifier = Modifier.height(24.dp))
+
+            InfoItem(label = "Date", value = dateText) { datePicker.show() }
+            InfoItem(label = "Time", value = timeText) { timePicker.show() }
+            InfoItem(label = "Start", value = "%02d:00".format(startHour)) {
+                TimePickerDialog(context, { _, hour, _ -> startHour = hour }, startHour, 0, true).show()
+            }
+            InfoItem(label = "End", value = "%02d:00".format(endHour)) {
+                TimePickerDialog(context, { _, hour, _ -> endHour = hour }, endHour, 0, true).show()
+            }
+
+            // Pataisytas info item su koordinatėmis - pavadinimas ir koordinatės matomos
+            InfoItem(
+                label = "Location",
+                value = if (selectedLat != null && selectedLng != null) "$selectedLat, $selectedLng" else "-",
+                onPick = { onLaunchMap() }
+            )
+
+            Spacer(modifier = Modifier.height(10.dp)) // Tarpo pridėjimas prieš mygtuką
+        }
+    }
+}
+
+@Composable
+fun StyledTextField(
+    value: TextFieldValue,
+    onValueChange: (TextFieldValue) -> Unit,
+    placeholder: String
+) {
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(Color.DarkGray.copy(alpha = 0.3f), RoundedCornerShape(6.dp))
+            .padding(horizontal = 12.dp, vertical = 14.dp)
+    ) {
+        if (value.text.isEmpty()) {
+            Text(
+                placeholder,
+                color = Color.White,
+                fontSize = 18.sp
+            )
+        }
+        BasicTextField(
+            value = value,
+            onValueChange = onValueChange,
+            textStyle = TextStyle(color = Color.White, fontSize = 20.sp),
+            modifier = Modifier.fillMaxWidth()
+        )
+    }
+}
+
+@Composable
+fun InfoItem(
+    label: String,
+    value: String,
+    modifier: Modifier = Modifier,
+    onPick: () -> Unit
+) {
+    val fontSize = if (value == "-") 16.sp else 16.sp
+
+    Row(
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(vertical = 8.dp)
+            .background(Color.DarkGray.copy(alpha = 0.2f), RoundedCornerShape(8.dp))
+            .padding(horizontal = 12.dp, vertical = 14.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        // Pavadinimas (label)
+        Text(
+            text = label,
+            color = Color.White,
+            fontSize = 18.sp,
+            modifier = Modifier.width(80.dp) // Fiksuotas plotis
+        )
+
+        // Koordinatės (value)
+        Text(
+            text = value,
+            color = Color.LightGray,
+            fontSize = fontSize,
+            maxLines = 1,
+            modifier = Modifier
+                .weight(1f)
+                .padding(end = 1.dp)
+        )
+
+        // "Pick" mygtukas
+        Box(
+            modifier = Modifier
+                .background(Color.Gray.copy(alpha = 0.4f), RoundedCornerShape(6.dp))
+        ) {
+            TextButton(onClick = onPick) {
+                Text("Pick", color = Color.White, fontSize = 14.sp)
+            }}
     }
 }
