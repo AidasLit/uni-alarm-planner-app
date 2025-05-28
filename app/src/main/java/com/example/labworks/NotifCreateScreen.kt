@@ -11,7 +11,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.example.labworks.database.data.Notif
 import java.text.SimpleDateFormat
 import java.util.*
@@ -21,7 +20,9 @@ import java.util.*
 fun NotifCreateScreen(
     onDone: (Notif) -> Unit,
     onBack: () -> Unit,
-    onLaunchMap: () -> Unit
+    onLaunchMap: () -> Unit,
+    passedLat: Double? = null,
+    passedLng: Double? = null
 ) {
     var title by remember { mutableStateOf("") }
     var description by remember { mutableStateOf("") }
@@ -39,6 +40,10 @@ fun NotifCreateScreen(
             SimpleDateFormat("HH:mm", Locale.getDefault()).format(calendar.time)
         )
     }
+
+    val selectedLat = passedLat
+    val selectedLng = passedLng
+
 
     var startHour by remember { mutableStateOf(8) }
     var endHour by remember { mutableStateOf(9) }
@@ -97,9 +102,12 @@ fun NotifCreateScreen(
                 TimePickerDialog(context, { _, hour, _ -> endHour = hour }, endHour, 0, true).show()
             }) { Text("Pick End Hour") }
 
-            Button(onClick = onLaunchMap) {
+            Button(onClick = { onLaunchMap() })
+            {
                 Text("Pick Location")
             }
+
+            Text("Location: ${selectedLat ?: "-"}, ${selectedLng ?: "-"}")
 
             Button(
                 modifier = Modifier.align(Alignment.CenterHorizontally),
@@ -112,7 +120,9 @@ fun NotifCreateScreen(
                             startHour = startHour,
                             endHour = endHour,
                             repeatIntervalMillis = null,
-                            enabled = true
+                            enabled = true,
+                            latitude = selectedLat,
+                            longitude = selectedLng
                         )
                     )
                 }
