@@ -28,6 +28,8 @@
 
         <receiver android:name=".AlarmReceiver" android:exported="false"/>
 
+        <activity android:name=".CreateNotificationActivity" />
+
         <activity
             android:name=".AlarmActivity"
             android:exported="true"

@@ -57,6 +57,7 @@ import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Locale
 import android.app.TimePickerDialog
+import android.content.Intent
 import androidx.compose.runtime.MutableState
 import androidx.fragment.app.FragmentActivity
 import java.util.Date
@@ -88,7 +89,6 @@ class AlarmFragment : Fragment() {
         }
     }
 }
-
 
 @Composable
 fun AlarmScreen(launchMap: MutableState<Boolean>, viewModel: NotifViewModel = viewModel()) {
@@ -168,19 +168,20 @@ fun AlarmScreen(launchMap: MutableState<Boolean>, viewModel: NotifViewModel = vi
                 )
             }
         }
-        NotifButton(
-            viewModel,
-            modifier = Modifier.align(Alignment.BottomEnd).padding(32.dp),
-            onNewNotif = {
-                coroutineScope.launch {
-                    notifs = viewModel.getAllNotifs()
-                }
+
+        val context = LocalContext.current
+        FloatingActionButton(
+            onClick = {
+                context.startActivity(Intent(context, CreateNotificationActivity::class.java))
             },
-            onLaunchMap = { launchMap.value = true }
-        )
+            containerColor = Color(0xFF333333),
+            contentColor = Color.White,
+            modifier = Modifier.align(Alignment.BottomEnd).padding(32.dp)
+        ) {
+            Icon(imageVector = PlusIcon, contentDescription = "Add an Alarm")
+        }
     }
 }
-
 
 @Composable
 fun NotifDetailsDialog(
@@ -198,7 +199,6 @@ fun NotifDetailsDialog(
                 modifier = Modifier.padding(24.dp),
                 verticalArrangement = Arrangement.spacedBy(16.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
-
             ) {
                 Text(
                     text = "Alarm: ${notif.title}",
@@ -225,7 +225,6 @@ fun NotifDetailsDialog(
                         Text("Delete", color = Color.Red)
                     }
                 }
-
             }
         }
     }
@@ -284,141 +283,6 @@ fun AlarmHeader() {
     }
 }
 
-@Composable
-fun NotifButton(
-    viewModel: NotifViewModel,
-    modifier: Modifier,
-    onNewNotif: () -> Unit,
-    onLaunchMap: () -> Unit
-) {
-    val showDialog = remember { mutableStateOf(false) }
-    val context = LocalContext.current
-
-    if (showDialog.value) {
-        NotifCreateDialog(
-            onDismissRequest = { showDialog.value = false },
-            onConfirmation = { title, timestamp, description, startHour, endHour, repeatIntervalMillis ->
-                val newNotif = Notif(
-                    title = title,
-                    timestamp = timestamp,
-                    description = description,
-                    startHour = startHour,
-                    endHour = endHour,
-                    repeatIntervalMillis = repeatIntervalMillis,
-                    enabled = true
-                )
-                viewModel.addAndSchedule(context, newNotif)
-                onNewNotif()
-                showDialog.value = false
-            },
-            onLaunchMap = {
-                showDialog.value = false
-                onLaunchMap()
-            }
-        )
-    }
-
-    FloatingActionButton(
-        onClick = { showDialog.value = true },
-        containerColor = Color(0xFF333333),
-        contentColor = Color.White,
-        modifier = modifier
-    ) {
-        Icon(imageVector = PlusIcon, contentDescription = "Add an Alarm")
-    }
-}
-
-
-
-
-@Composable
-fun NotifCreateDialog(
-    onDismissRequest: () -> Unit = {},
-    onConfirmation: (
-        title: String,
-        timestamp: Long,
-        description: String,
-        startHour: Int,
-        endHour: Int,
-        repeatIntervalMillis: Long?
-    ) -> Unit = { _, _, _, _, _, _ -> },
-    onLaunchMap: () -> Unit = {} // NEW
-) {
-    var newTitle by remember { mutableStateOf("") }
-    var description by remember { mutableStateOf("") }
-
-    val context = LocalContext.current
-    val calendar = remember { Calendar.getInstance() }
-    var dateText by remember { mutableStateOf(SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(calendar.time)) }
-    var timeText by remember { mutableStateOf(SimpleDateFormat("HH:mm", Locale.getDefault()).format(calendar.time)) }
-
-    var startHour by remember { mutableStateOf(8) }
-    var endHour by remember { mutableStateOf(9) }
-
-    val startTimePicker = remember {
-        TimePickerDialog(context, { _, hour, _ -> startHour = hour }, startHour, 0, true)
-    }
-
-    val endTimePicker = remember {
-        TimePickerDialog(context, { _, hour, _ -> endHour = hour }, endHour, 0, true)
-    }
-
-    val datePickerDialog = remember {
-        DatePickerDialog(context, { _, y, m, d ->
-            calendar.set(y, m, d)
-            dateText = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(calendar.time)
-        }, calendar.get(Calendar.YEAR), calendar.get(Calendar.MONTH), calendar.get(Calendar.DAY_OF_MONTH))
-    }
-
-    val timePickerDialog = remember {
-        TimePickerDialog(context, { _, h, m ->
-            calendar.set(Calendar.HOUR_OF_DAY, h)
-            calendar.set(Calendar.MINUTE, m)
-            timeText = SimpleDateFormat("HH:mm", Locale.getDefault()).format(calendar.time)
-        }, calendar.get(Calendar.HOUR_OF_DAY), calendar.get(Calendar.MINUTE), true)
-    }
-
-    Dialog(onDismissRequest = onDismissRequest) {
-        Card(
-            modifier = Modifier.fillMaxWidth().wrapContentHeight().padding(16.dp),
-            shape = RoundedCornerShape(16.dp)
-        ) {
-            Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                Text("Create a new Alarm", fontSize = 18.sp, fontWeight = FontWeight.Bold)
-                OutlinedTextField(value = newTitle, onValueChange = { newTitle = it }, label = { Text("Title") })
-                OutlinedTextField(value = description, onValueChange = { description = it }, label = { Text("Description") })
-
-                Text("Selected date: $dateText")
-                Button(onClick = { datePickerDialog.show() }) { Text("Pick Date") }
-
-                Text("Selected time: $timeText")
-                Button(onClick = { timePickerDialog.show() }) { Text("Pick Time") }
-
-                Text("Start time: ${"%02d:00".format(startHour)}")
-                Button(onClick = { startTimePicker.show() }) { Text("Pick Start Time") }
-
-                Text("End time: ${"%02d:00".format(endHour)}")
-                Button(onClick = { endTimePicker.show() }) { Text("Pick End Time") }
-
-                Button(onClick = onLaunchMap) { Text("Pick Location") }
-
-                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
-                    TextButton(onClick = onDismissRequest) { Text("Cancel") }
-                    TextButton(onClick = {
-                        onConfirmation(
-                            newTitle,
-                            calendar.timeInMillis,
-                            description,
-                            startHour,
-                            endHour,
-                            null // you can expand to include repeat logic
-                        )
-                    }) { Text("Add") }
-                }
-            }
-        }
-    }
-}
 
 
 
