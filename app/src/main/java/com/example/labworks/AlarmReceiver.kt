@@ -1,3 +1,4 @@
+// Updated AlarmReceiver to use user-selected vibration strength
 package com.example.labworks
 
 import android.app.*
@@ -21,6 +22,10 @@ class AlarmReceiver : BroadcastReceiver() {
         val prefs = context.getSharedPreferences("AppPrefs", Context.MODE_PRIVATE)
         val soundUriString = prefs.getString("alarmSound", null)
         val soundUri: Uri? = soundUriString?.let { Uri.parse(it) }
+
+        // Load vibration strength setting
+        val vibrationDuration = prefs.getLong("vibrationStrength", 300L)
+        val vibrationPattern = if (vibrationDuration > 0) longArrayOf(0, vibrationDuration, 250, vibrationDuration) else null
 
         // Use dynamic channel ID based on sound
         val channelId = "alarm_channel_${soundUri?.hashCode() ?: "default"}"
@@ -47,35 +52,25 @@ class AlarmReceiver : BroadcastReceiver() {
                 NotificationManager.IMPORTANCE_HIGH
             ).apply {
                 setDescription("Channel for alarm notifications")
-                enableVibration(true)
-                vibrationPattern = longArrayOf(0, 500, 250, 500)
-                soundUri?.let {
-                    setSound(it, Notification.AUDIO_ATTRIBUTES_DEFAULT)
-                }
             }
 
-            val manager =
-                context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+            val manager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
             manager.createNotificationChannel(channel)
         }
 
         // Build notification
-        val notificationBuilder = NotificationCompat.Builder(context, channelId)
+        val builder = NotificationCompat.Builder(context, channelId)
             .setSmallIcon(R.drawable.ic_launcher_foreground)
             .setContentTitle(title)
             .setContentText(description)
             .setPriority(NotificationCompat.PRIORITY_HIGH)
             .setCategory(NotificationCompat.CATEGORY_ALARM)
             .setAutoCancel(true)
-            .setVibrate(longArrayOf(0, 500, 250, 500))
             .setFullScreenIntent(fullScreenPendingIntent, true)
+            .setSilent(true)
 
-        // Set custom sound (for pre-Oreo or fallback)
-        soundUri?.let { notificationBuilder.setSound(it) }
+        val notification = builder.build()
 
-        val notification = notificationBuilder.build()
-
-        // Show notification
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU ||
             context.checkSelfPermission(android.Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED
         ) {

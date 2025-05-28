@@ -103,7 +103,7 @@ class SettingsFragment : Fragment() {
 fun SettingsScreen(ringtonePickerLauncher: androidx.activity.result.ActivityResultLauncher<Intent>) {
 
     val categories =
-        listOf("Time Format", "Ringtone", "Alarm ring duration", "About", "Privacy Policy")
+        listOf("Time Format", "Ringtone", "Vibration Strength", "Alarm ring duration", "About", "Privacy Policy")
 
     var selectedCategory by remember { mutableStateOf("Time Format") }
     var previousCategory by remember { mutableStateOf("Time Format") }
@@ -238,6 +238,7 @@ fun SettingsScreen(ringtonePickerLauncher: androidx.activity.result.ActivityResu
                         when (category) {
                             "Time Format" -> TimeFormatSetting(prefs, textColor)
                             "Ringtone" -> SoundPickerSetting(prefs, ringtonePickerLauncher, textColor, ringtoneSignal)
+                            "Vibration Strength" -> VibrationStrengthSetting(prefs, textColor)
                             "Alarm ring duration" -> AlarmDurationSetting(prefs, textColor)
                             "About" -> AboutSetting(textColor)
                             "Privacy Policy" -> PrivacyPolicySetting(textColor)
@@ -444,6 +445,41 @@ fun AlarmDurationSetting(prefs: SharedPreferences, textColor: Color) {
                         onClick = {
                             selectedIndex = index
                             prefs.edit().putInt("alarmDuration", durations[index]).apply()
+                            expanded = false
+                        }
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun VibrationStrengthSetting(prefs: SharedPreferences, textColor: Color) {
+    val strengths = listOf("Off", "Low", "Medium", "Strong")
+    val values = listOf(0L, 100L, 300L, 600L) // durations
+    var selectedIndex by remember {
+        mutableStateOf(values.indexOf(prefs.getLong("vibrationStrength", 300L)))
+    }
+
+    var expanded by remember { mutableStateOf(false) }
+
+    Column {
+        Text("Select Vibration Strength:", fontSize = 20.sp, fontWeight = FontWeight.Bold, color = textColor)
+        Spacer(modifier = Modifier.height(16.dp))
+
+        Box {
+            OutlinedButton(onClick = { expanded = true }) {
+                Text(strengths[selectedIndex])
+            }
+
+            DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
+                strengths.forEachIndexed { index, label ->
+                    DropdownMenuItem(
+                        text = { Text(label) },
+                        onClick = {
+                            selectedIndex = index
+                            prefs.edit().putLong("vibrationStrength", values[index]).apply()
                             expanded = false
                         }
                     )
