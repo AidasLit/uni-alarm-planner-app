@@ -14,6 +14,9 @@ import android.os.*
 import android.view.WindowManager
 import android.widget.Button
 import android.widget.TextView
+import android.view.animation.AnimationUtils
+import android.view.View
+
 
 class AlarmActivity : Activity() {
 
@@ -87,6 +90,12 @@ class AlarmActivity : Activity() {
         accelerometer?.let {
             sensorManager.registerListener(sensorListener, it, SensorManager.SENSOR_DELAY_NORMAL)
         }
+
+        // Start shake animation
+        val rootLayout = findViewById<View>(R.id.activity_alarm)
+        val shake = AnimationUtils.loadAnimation(this, R.anim.shake)
+        rootLayout.startAnimation(shake)
+
     }
 
     private fun stopAlarm() {

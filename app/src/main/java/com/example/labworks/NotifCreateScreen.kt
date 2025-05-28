@@ -4,10 +4,10 @@ import android.app.DatePickerDialog
 import android.app.TimePickerDialog
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.*
@@ -121,7 +121,7 @@ fun NotifCreateScreen(
                 .fillMaxSize()
                 .padding(padding)
                 .padding(horizontal = 16.dp)
-                .verticalScroll(scrollState) // Pritaikome slinkimą visam turiniui
+                .verticalScroll(scrollState)
         ) {
             Spacer(modifier = Modifier.height(12.dp))
 
@@ -141,23 +141,28 @@ fun NotifCreateScreen(
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            InfoItem(label = "Date", value = dateText) { datePicker.show() }
-            InfoItem(label = "Time", value = timeText) { timePicker.show() }
-            InfoItem(label = "Start", value = "%02d:00".format(startHour)) {
-                TimePickerDialog(context, { _, hour, _ -> startHour = hour }, startHour, 0, true).show()
-            }
-            InfoItem(label = "End", value = "%02d:00".format(endHour)) {
-                TimePickerDialog(context, { _, hour, _ -> endHour = hour }, endHour, 0, true).show()
-            }
+            InfoItem(label = "Date", value = dateText, onPick = { datePicker.show() })
+            InfoItem(label = "Time", value = timeText, onPick = { timePicker.show() })
 
-            // Pataisytas info item su koordinatėmis - pavadinimas ir koordinatės matomos
+            // Start & End - disabled
+            InfoItem(
+                label = "Start",
+                value = "%02d:00".format(startHour),
+                disabled = true
+            )
+            InfoItem(
+                label = "End",
+                value = "%02d:00".format(endHour),
+                disabled = true
+            )
+
             InfoItem(
                 label = "Location",
                 value = if (selectedLat != null && selectedLng != null) "$selectedLat, $selectedLng" else "-",
                 onPick = { onLaunchMap() }
             )
 
-            Spacer(modifier = Modifier.height(10.dp)) // Tarpo pridėjimas prieš mygtuką
+            Spacer(modifier = Modifier.height(10.dp))
         }
     }
 }
@@ -195,30 +200,31 @@ fun InfoItem(
     label: String,
     value: String,
     modifier: Modifier = Modifier,
-    onPick: () -> Unit
+    onPick: (() -> Unit)? = null,
+    disabled: Boolean = false
 ) {
     val fontSize = if (value == "-") 16.sp else 16.sp
+    val backgroundColor = if (disabled) Color.Gray.copy(alpha = 0.2f) else Color.DarkGray.copy(alpha = 0.2f)
+    val textColor = if (disabled) Color.LightGray.copy(alpha = 0.5f) else Color.LightGray
 
     Row(
         modifier = modifier
             .fillMaxWidth()
             .padding(vertical = 8.dp)
-            .background(Color.DarkGray.copy(alpha = 0.2f), RoundedCornerShape(8.dp))
+            .background(backgroundColor, RoundedCornerShape(8.dp))
             .padding(horizontal = 12.dp, vertical = 14.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        // Pavadinimas (label)
         Text(
             text = label,
             color = Color.White,
             fontSize = 18.sp,
-            modifier = Modifier.width(80.dp) // Fiksuotas plotis
+            modifier = Modifier.width(80.dp)
         )
 
-        // Koordinatės (value)
         Text(
-            text = value,
-            color = Color.LightGray,
+            text = if (disabled) "Coming soon" else value.take(12),
+            color = textColor,
             fontSize = fontSize,
             maxLines = 1,
             modifier = Modifier
@@ -226,13 +232,15 @@ fun InfoItem(
                 .padding(end = 1.dp)
         )
 
-        // "Pick" mygtukas
-        Box(
-            modifier = Modifier
-                .background(Color.Gray.copy(alpha = 0.4f), RoundedCornerShape(6.dp))
-        ) {
-            TextButton(onClick = onPick) {
-                Text("Pick", color = Color.White, fontSize = 14.sp)
-            }}
+        if (!disabled && onPick != null) {
+            Box(
+                modifier = Modifier
+                    .background(Color.Gray.copy(alpha = 0.4f), RoundedCornerShape(6.dp))
+            ) {
+                TextButton(onClick = onPick) {
+                    Text("Pick", color = Color.White, fontSize = 14.sp)
+                }
+            }
+        }
     }
 }
