@@ -123,6 +123,22 @@ class DayNotificationsFragment : Fragment() {
                                 Text("Time: $formattedTime", color = Color.Gray)
                             }
                         }
+                        Button(
+                            onClick = {
+                                val lat = notif.latitude
+                                val lng = notif.longitude
+                                if (lat != null && lng != null) {
+                                    parentFragmentManager.beginTransaction()
+                                        .replace(android.R.id.content, MapFragment.newInstance(lat, lng))
+                                        .addToBackStack(null)
+                                        .commit()
+                                }
+                            },
+                            modifier = Modifier.padding(top = 8.dp)
+                        ) {
+                            Text("View Location")
+                        }
+
                     }
                 }
             }

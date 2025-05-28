@@ -82,9 +82,9 @@ class AlarmActivity : Activity() {
     private fun stopAlarm() {
         if (ringtone?.isPlaying == true) {
             ringtone?.stop()
-            println("🔊 Ringtone stopped")
+            println(" Ringtone stopped")
         } else {
-            println("❌ Ringtone was not playing or null")
+            println(" Ringtone was not playing or null")
         }
         vibrator?.cancel()
     }
