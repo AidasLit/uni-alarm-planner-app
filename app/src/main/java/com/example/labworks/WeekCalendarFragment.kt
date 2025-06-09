@@ -1,10 +1,13 @@
 package com.example.labworks
 
 import android.os.Bundle
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -106,29 +109,67 @@ class WeekCalendarFragment : Fragment() {
             horizontalArrangement = Arrangement.Center,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Button(onClick = {
-                currentCalendar.value = (currentCalendar.value.clone() as Calendar).apply {
-                    add(Calendar.WEEK_OF_YEAR, -1)
+            Box(
+                modifier = Modifier
+                    .background(Color.Gray.copy(alpha = 0.4f), RoundedCornerShape(6.dp))
+            ) {
+                TextButton(
+                    onClick = {
+                        currentCalendar.value = (currentCalendar.value.clone() as Calendar).apply {
+                            add(Calendar.WEEK_OF_YEAR, -1)
+                        }
+                    },
+                    contentPadding = PaddingValues(horizontal = 4.dp, vertical = 0.dp),
+                    modifier = Modifier
+                        .defaultMinSize(minWidth = 36.dp, minHeight = 36.dp)
+                        .height(36.dp)
+                ) {
+                    Text(
+                        text = "<",
+                        color = Color.White,
+                        fontSize = 28.sp,         // Large enough
+                        lineHeight = 28.sp,       // Matches font size to avoid clipping
+                        modifier = Modifier
+                            .padding(bottom = 2.dp) // Tiny bottom margin to avoid visual clipping
+                    )
                 }
-            }) {
-                Text("←")
-            }
 
+
+            }
             Text(
                 text = "Week of ${dateFormat.format(weekStart.time)} – ${dateFormat.format(weekEnd.time)}, ${yearFormat.format(weekStart.time)}",
-                modifier = Modifier.weight(1f).padding(horizontal = 16.dp),
+                modifier = Modifier.weight(1f).padding(horizontal = 24.dp),
                 color = Color.White,
                 textAlign = TextAlign.Center,
                 fontWeight = FontWeight.Bold
             )
-
-            Button(onClick = {
-                currentCalendar.value = (currentCalendar.value.clone() as Calendar).apply {
-                    add(Calendar.WEEK_OF_YEAR, 1)
+            Box(
+                modifier = Modifier
+                    .background(Color.Gray.copy(alpha = 0.4f), RoundedCornerShape(6.dp))
+            ) {
+                TextButton(
+                    onClick = {
+                        currentCalendar.value = (currentCalendar.value.clone() as Calendar).apply {
+                            add(Calendar.WEEK_OF_YEAR, 1)
+                        }
+                    },
+                    contentPadding = PaddingValues(horizontal = 4.dp, vertical = 0.dp),
+                    modifier = Modifier
+                        .defaultMinSize(minWidth = 36.dp, minHeight = 36.dp)
+                        .height(36.dp)
+                ) {
+                    Text(
+                        text = ">",
+                        color = Color.White,
+                        fontSize = 28.sp,         // Large enough
+                        lineHeight = 28.sp,       // Matches font size to avoid clipping
+                        modifier = Modifier
+                            .padding(bottom = 2.dp) // Tiny bottom margin to avoid visual clipping
+                    )
                 }
-            }) {
-                Text("→")
+
             }
+
         }
     }
 
@@ -174,19 +215,43 @@ class WeekCalendarFragment : Fragment() {
                         today.get(Calendar.DAY_OF_YEAR) == day.get(Calendar.DAY_OF_YEAR)
 
                 val formattedDay = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(day.time)
-                val notifForDay = notifs.find {
+
+                val dayNotifs = notifs.filter {
                     SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date(it.timestamp)) == formattedDay && it.enabled
                 }
 
-                val startHourInt = notifForDay?.startHour ?: -1
-                val endHourInt = notifForDay?.endHour ?: -1
+                val notifColors = listOf(
+                    Color(0xFFB3D9FF), // Very Light Blue (1 notif)
+                    Color(0xFF80BFFF), // Light Blue (2 notifs)
+                    Color(0xFF4DA6FF), // Medium Blue (3 notifs)
+                    Color(0xFF1A8CFF), // Darker Blue (4 notifs)
+                    Color(0xFF0066CC)  // Very Dark Blue (5+ notifs)
+                )
+
+
+                val notifCount = dayNotifs.size
+
+                val hasNotif = notifCount > 0
+                val dayColor = when {
+                    !hasNotif && isToday -> Color(0xFF2E2E2E)
+                    !hasNotif -> Color(0xFF1A1A1A)
+                    else -> {
+                        val colorIndex = (notifCount - 1).coerceIn(0, notifColors.lastIndex)
+                        notifColors[colorIndex]
+                    }
+                }
+
 
                 Column(
                     modifier = Modifier
                         .width(53.dp)
-                        .background(if (isToday) Color(0xFF2E2E2E) else Color(0xFF1A1A1A))
-                        .clickable(enabled = notifForDay != null) {
-                            notifForDay?.let { onNotifSelected(it) }
+                        .then(
+                            if (isToday) Modifier.border(BorderStroke(2.dp, Color.Red))
+                            else Modifier.border(BorderStroke(0.5.dp, Color.DarkGray))
+                        )
+                        .background(dayColor)
+                        .clickable(enabled = hasNotif) {
+                            dayNotifs.firstOrNull()?.let { onNotifSelected(it) }
                         }
                         .padding(horizontal = 4.dp)
                 ) {
@@ -201,14 +266,11 @@ class WeekCalendarFragment : Fragment() {
                     )
 
                     for (hour in hours) {
-                        val isHighlightedHour = notifForDay != null && hour in startHourInt until 9
-                        val slotColor = if (isHighlightedHour) Color(0xFF3C6ED0) else Color(0xFF292929)
-
                         Box(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .height(60.dp)
-                                .background(slotColor)
+                                .background(dayColor)
                                 .padding(2.dp),
                             contentAlignment = Alignment.Center
                         ) {
@@ -217,6 +279,18 @@ class WeekCalendarFragment : Fragment() {
                     }
                 }
             }
+
         }
     }
 }
+
+fun interpolateColor(from: Color, to: Color, fraction: Float): Color {
+    return Color(
+        red = from.red + (to.red - from.red) * fraction,
+        green = from.green + (to.green - from.green) * fraction,
+        blue = from.blue + (to.blue - from.blue) * fraction,
+        alpha = 1f
+    )
+}
+
+

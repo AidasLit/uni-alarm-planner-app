@@ -21,6 +21,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.viewinterop.AndroidView
 import com.example.labworks.database.data.Notif
 import java.text.SimpleDateFormat
 import java.util.*
@@ -86,21 +87,29 @@ fun NotifCreateScreen(
             )
         },
         bottomBar = {
+            val isTitleValid = title.text.trim().isNotEmpty()
+
+            val context = LocalContext.current
+
             Button(
                 onClick = {
-                    onDone(
-                        Notif(
-                            title = title.text,
-                            description = description.text,
-                            timestamp = calendar.timeInMillis,
-                            startHour = startHour,
-                            endHour = endHour,
-                            repeatIntervalMillis = null,
-                            enabled = true,
-                            latitude = selectedLat,
-                            longitude = selectedLng
+                    if (title.text.trim().isEmpty()) {
+                        android.widget.Toast.makeText(context, "Please enter a title", android.widget.Toast.LENGTH_SHORT).show()
+                    } else {
+                        onDone(
+                            Notif(
+                                title = title.text.trim(),
+                                description = description.text.trim(),
+                                timestamp = calendar.timeInMillis,
+                                startHour = startHour,
+                                endHour = endHour,
+                                repeatIntervalMillis = null,
+                                enabled = true,
+                                latitude = selectedLat,
+                                longitude = selectedLng
+                            )
                         )
-                    )
+                    }
                 },
                 modifier = Modifier
                     .fillMaxWidth()
@@ -145,26 +154,75 @@ fun NotifCreateScreen(
             InfoItem(label = "Time", value = timeText, onPick = { timePicker.show() })
 
             // Start & End - disabled
-            InfoItem(
-                label = "Start",
-                value = "%02d:00".format(startHour),
-                disabled = true
-            )
-            InfoItem(
-                label = "End",
-                value = "%02d:00".format(endHour),
-                disabled = true
-            )
+//            InfoItem(
+//                label = "Start",
+//                value = "%02d:00".format(startHour),
+//                disabled = true
+//            )
+//            InfoItem(
+//                label = "End",
+//                value = "%02d:00".format(endHour),
+//                disabled = true
+//            )
+
+            val context = LocalContext.current
+            val clipboardManager = context.getSystemService(android.content.ClipboardManager::class.java)
 
             InfoItem(
                 label = "Location",
-                value = if (selectedLat != null && selectedLng != null) "$selectedLat, $selectedLng" else "-",
-                onPick = { onLaunchMap() }
+                value = if (selectedLat != null && selectedLng != null)
+                    "Lat: %.5f\nLng: %.5f".format(selectedLat, selectedLng)
+                else "-",
+                onPick = { onLaunchMap() },
+                onCopy = {
+                    if (selectedLat != null && selectedLng != null) {
+                        val coords = "Lat: %.5f, Lng: %.5f".format(selectedLat, selectedLng)
+                        val clip = android.content.ClipData.newPlainText("Coordinates", coords)
+                        clipboardManager.setPrimaryClip(clip)
+
+                        // Show toast
+                        android.widget.Toast.makeText(context, "Coordinates copied", android.widget.Toast.LENGTH_SHORT).show()
+                    }
+                }
             )
 
+
+
+
+            if (selectedLat != null && selectedLng != null) {
+                Spacer(modifier = Modifier.height(10.dp))
+
+                AndroidView(
+                    factory = { context ->
+                        val mapView = com.google.android.gms.maps.MapView(context)
+                        mapView.onCreate(null)
+                        mapView.onResume()
+                        mapView.getMapAsync { googleMap ->
+                            val location = com.google.android.gms.maps.model.LatLng(selectedLat, selectedLng)
+                            googleMap.uiSettings.setAllGesturesEnabled(false)
+                            googleMap.addMarker(
+                                com.google.android.gms.maps.model.MarkerOptions()
+                                    .position(location)
+                                    .title("Selected Location")
+                            )
+                            googleMap.moveCamera(
+                                com.google.android.gms.maps.CameraUpdateFactory.newLatLngZoom(location, 14f)
+                            )
+                        }
+                        mapView
+                    },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(180.dp)
+                        .padding(top = 8.dp)
+                )
+            }
+
             Spacer(modifier = Modifier.height(10.dp))
+
         }
     }
+
 }
 
 @Composable
@@ -201,8 +259,10 @@ fun InfoItem(
     value: String,
     modifier: Modifier = Modifier,
     onPick: (() -> Unit)? = null,
+    onCopy: (() -> Unit)? = null,
     disabled: Boolean = false
-) {
+)
+ {
     val fontSize = if (value == "-") 16.sp else 16.sp
     val backgroundColor = if (disabled) Color.Gray.copy(alpha = 0.2f) else Color.DarkGray.copy(alpha = 0.2f)
     val textColor = if (disabled) Color.LightGray.copy(alpha = 0.5f) else Color.LightGray
@@ -223,15 +283,21 @@ fun InfoItem(
         )
 
         Text(
-            text = if (disabled) "Coming soon" else value.take(12),
+            text = if (disabled) "Coming soon" else value,
             color = textColor,
             fontSize = fontSize,
-            maxLines = 1,
             modifier = Modifier
                 .weight(1f)
-                .padding(end = 1.dp)
+                .padding(end = 8.dp),
+            softWrap = true,
+            maxLines = 5 // or Int.MAX_VALUE if needed
         )
-
+        if (!disabled && onCopy != null) {
+            Spacer(modifier = Modifier.width(8.dp))
+            TextButton(onClick = onCopy) {
+                Text("Copy", color = Color.White, fontSize = 14.sp)
+            }
+        }
         if (!disabled && onPick != null) {
             Box(
                 modifier = Modifier
@@ -242,5 +308,6 @@ fun InfoItem(
                 }
             }
         }
+
     }
 }
