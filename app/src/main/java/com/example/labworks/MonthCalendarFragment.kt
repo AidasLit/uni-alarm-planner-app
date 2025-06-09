@@ -66,6 +66,16 @@ fun CustomMonthCalendar(fragment: Fragment) {
     var selectedDate by remember { mutableStateOf<LocalDate?>(null) }
     var currentMonth by remember { mutableStateOf(YearMonth.now()) }
     val viewModel: NotifViewModel = viewModel()
+
+    val notifColors = listOf(
+        Color(0xFFB3D9FF), // 1 notif - Lightest
+        Color(0xFF80BFFF), // 2 notifs
+        Color(0xFF4DA6FF), // 3 notifs
+        Color(0xFF1A8CFF), // 4 notifs
+        Color(0xFF0066CC)  // 5+ notifs - Darkest
+    )
+
+
     var selectedNotif by remember { mutableStateOf<Notif?>(null) }
 
     var allNotifs by remember { mutableStateOf(emptyList<Notif>()) }
@@ -88,18 +98,39 @@ fun CustomMonthCalendar(fragment: Fragment) {
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            IconButton(onClick = { currentMonth = currentMonth.minusMonths(1) }) {
-                Icon(Icons.Default.ArrowBack, contentDescription = "Previous month")
+            Box(
+                modifier = Modifier
+                    .background(Color.Gray.copy(alpha = 0.4f), RoundedCornerShape(6.dp))
+            ) {
+                TextButton(
+                    onClick = { currentMonth = currentMonth.minusMonths(1) },
+                    contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp),
+                    modifier = Modifier.defaultMinSize(minWidth = 40.dp, minHeight = 36.dp)
+                ) {
+                    Text("<", color = Color.White, fontSize = 24.sp, lineHeight = 24.sp)
+                }
             }
+
             Text(
-                text = currentMonth.month.getDisplayName(TextStyle.FULL, Locale("lt"))
+                text = currentMonth.month.getDisplayName(TextStyle.FULL, Locale.ENGLISH)
                     .replaceFirstChar { it.uppercaseChar() } + " " + currentMonth.year,
                 style = MaterialTheme.typography.titleLarge,
                 modifier = Modifier.padding(8.dp)
             )
-            IconButton(onClick = { currentMonth = currentMonth.plusMonths(1) }) {
-                Icon(Icons.Default.ArrowForward, contentDescription = "Next month")
+
+            Box(
+                modifier = Modifier
+                    .background(Color.Gray.copy(alpha = 0.4f), RoundedCornerShape(6.dp))
+            ) {
+                TextButton(
+                    onClick = { currentMonth = currentMonth.plusMonths(1) },
+                    contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp),
+                    modifier = Modifier.defaultMinSize(minWidth = 40.dp, minHeight = 36.dp)
+                ) {
+                    Text(">", color = Color.White, fontSize = 24.sp, lineHeight = 24.sp)
+                }
             }
+
         }
 
         Spacer(modifier = Modifier.height(8.dp))
@@ -138,6 +169,7 @@ fun CustomMonthCalendar(fragment: Fragment) {
                 val isSelected = date == selectedDate
                 val isToday = date == today
 
+
                 // Find all notifs for that day
                 val matchingNotifs = allNotifs.filter { notif ->
                     val notifDate = Instant.ofEpochMilli(notif.timestamp)
@@ -150,13 +182,21 @@ fun CustomMonthCalendar(fragment: Fragment) {
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(cellHeight)
-                        .border(BorderStroke(0.5.dp, Color.DarkGray))
+                        .then(
+                            if (isToday) Modifier.border(BorderStroke(2.dp, Color.Red))
+                            else Modifier.border(BorderStroke(0.5.dp, Color.DarkGray))
+                        )
                         .background(
                             when {
                                 isSelected -> Color(0xFF3F51B5)
-                                isToday -> Color(0xFF424242)
-                                matchingNotifs.isNotEmpty() -> Color(0xFF2A3A5E)
-                                else -> Color(0xFF1E1E1E)
+                                else -> {
+                                    val count = matchingNotifs.size
+                                    when {
+                                        count == 0 && isToday -> Color(0xFF424242)
+                                        count == 0 -> Color(0xFF1E1E1E)
+                                        else -> notifColors[(count - 1).coerceIn(0, notifColors.lastIndex)]
+                                    }
+                                }
                             }
                         )
                         .clickable(enabled = matchingNotifs.isNotEmpty()) {
