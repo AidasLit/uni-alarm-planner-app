@@ -9,7 +9,7 @@
 
     <TextView
         android:id="@+id/alarmTitle"
-        android:textSize="28sp"
+        android:textSize="48sp"
         android:textColor="#FFFFFF"
         android:text="Alarm Title"
         android:layout_marginBottom="16dp"
@@ -18,7 +18,7 @@
 
     <TextView
         android:id="@+id/alarmDescription"
-        android:textSize="18sp"
+        android:textSize="24sp"
         android:textColor="#CCCCCC"
         android:text="Alarm Description"
         android:layout_marginBottom="32dp"
@@ -27,7 +27,8 @@
 
     <Button
         android:id="@+id/dismissButton"
+        android:layout_width="171dp"
+        android:layout_height="80dp"
         android:text="Dismiss"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"/>
+        android:textSize="24dp"/>
 </LinearLayout>

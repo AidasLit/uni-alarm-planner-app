@@ -1,7 +1,10 @@
 package com.example.labworks
 
 import android.os.Bundle
+import androidx.compose.animation.*
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -13,6 +16,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.text.font.FontWeight
@@ -42,6 +46,8 @@ class WeekCalendarFragment : Fragment() {
     @Composable
     fun WeekCalendarScreen() {
         val currentWeek = remember { mutableStateOf(Calendar.getInstance().apply { set(Calendar.DAY_OF_WEEK, Calendar.MONDAY) }) }
+        val weekOffset = remember { mutableStateOf(0) }
+        val scrollState = rememberScrollState()
         val viewModel: NotifViewModel = viewModel()
         var selectedNotif by remember { mutableStateOf<Notif?>(null) }
 
@@ -51,19 +57,63 @@ class WeekCalendarFragment : Fragment() {
                 .background(Color(0xFF121212))
                 .padding(top = 24.dp)
         ) {
-            WeekNavigationBar(currentCalendar = currentWeek)
-            VerticalScrollGrid(
-                startOfWeek = currentWeek.value,
-                viewModel = viewModel,
-                onNotifSelected = { notif ->
-                    val fragment = DayNotificationsFragment.newInstance(notif.timestamp)
-                    parentFragmentManager.beginTransaction()
-                        .replace(R.id.fragment_container, fragment) // Make sure you have a FrameLayout with this ID
-                        .addToBackStack(null)
-                        .commit()
-                }
+            WeekNavigationBar(currentCalendar = currentWeek, weekOffset = weekOffset)
 
-            )
+            BoxWithConstraints(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .weight(1f)
+                    .clipToBounds()
+            ) {
+                val fixedHeight = maxHeight
+
+                AnimatedContent(
+                    targetState = currentWeek.value.timeInMillis,
+                    transitionSpec = {
+                        val direction = weekOffset.value
+                        if (direction > 0) {
+                            slideInHorizontally(
+                                animationSpec = tween(300),
+                                initialOffsetX = { width -> width }
+                            ) togetherWith slideOutHorizontally(
+                                animationSpec = tween(300),
+                                targetOffsetX = { width -> -width }
+                            )
+                        } else {
+                            slideInHorizontally(
+                                animationSpec = tween(300),
+                                initialOffsetX = { width -> -width }
+                            ) togetherWith slideOutHorizontally(
+                                animationSpec = tween(300),
+                                targetOffsetX = { width -> width }
+                            )
+                        }.using(SizeTransform(clip = true))
+                    }
+                ) { _ ->
+                    VerticalScrollGrid(
+                        startOfWeek = Calendar.getInstance().apply {
+                            timeInMillis = currentWeek.value.timeInMillis
+                            set(Calendar.DAY_OF_WEEK, Calendar.MONDAY)
+                        },
+                        viewModel = viewModel,
+                        onNotifSelected = { notif ->
+                            val fragment = DayNotificationsFragment.newInstance(notif.timestamp)
+                            parentFragmentManager.beginTransaction()
+                                .replace(R.id.fragment_container, fragment)
+                                .addToBackStack(null)
+                                .commit()
+                        },
+                        scrollState = scrollState
+                    )
+                }
+            }
+
+            // Optional: scroll to current hour on first load or week change
+            LaunchedEffect(currentWeek.value.timeInMillis) {
+                val now = Calendar.getInstance()
+                val currentHour = now.get(Calendar.HOUR_OF_DAY)
+                weekOffset.value = 0
+            }
         }
 
         selectedNotif?.let { notif ->
@@ -92,7 +142,7 @@ class WeekCalendarFragment : Fragment() {
     }
 
     @Composable
-    fun WeekNavigationBar(currentCalendar: MutableState<Calendar>) {
+    fun WeekNavigationBar(currentCalendar: MutableState<Calendar>, weekOffset: MutableState<Int>) {
         val weekStart = remember(currentCalendar.value) {
             (currentCalendar.value.clone() as Calendar).apply {
                 set(Calendar.DAY_OF_WEEK, Calendar.MONDAY)
@@ -115,27 +165,18 @@ class WeekCalendarFragment : Fragment() {
             ) {
                 TextButton(
                     onClick = {
+                        weekOffset.value = -1
                         currentCalendar.value = (currentCalendar.value.clone() as Calendar).apply {
                             add(Calendar.WEEK_OF_YEAR, -1)
                         }
                     },
                     contentPadding = PaddingValues(horizontal = 4.dp, vertical = 0.dp),
-                    modifier = Modifier
-                        .defaultMinSize(minWidth = 36.dp, minHeight = 36.dp)
-                        .height(36.dp)
+                    modifier = Modifier.defaultMinSize(minWidth = 36.dp).height(36.dp)
                 ) {
-                    Text(
-                        text = "<",
-                        color = Color.White,
-                        fontSize = 28.sp,         // Large enough
-                        lineHeight = 28.sp,       // Matches font size to avoid clipping
-                        modifier = Modifier
-                            .padding(bottom = 2.dp) // Tiny bottom margin to avoid visual clipping
-                    )
+                    Text("<", color = Color.White, fontSize = 28.sp, lineHeight = 28.sp)
                 }
-
-
             }
+
             Text(
                 text = "Week of ${dateFormat.format(weekStart.time)} – ${dateFormat.format(weekEnd.time)}, ${yearFormat.format(weekStart.time)}",
                 modifier = Modifier.weight(1f).padding(horizontal = 24.dp),
@@ -143,33 +184,24 @@ class WeekCalendarFragment : Fragment() {
                 textAlign = TextAlign.Center,
                 fontWeight = FontWeight.Bold
             )
+
             Box(
                 modifier = Modifier
                     .background(Color.Gray.copy(alpha = 0.4f), RoundedCornerShape(6.dp))
             ) {
                 TextButton(
                     onClick = {
+                        weekOffset.value = 1
                         currentCalendar.value = (currentCalendar.value.clone() as Calendar).apply {
                             add(Calendar.WEEK_OF_YEAR, 1)
                         }
                     },
                     contentPadding = PaddingValues(horizontal = 4.dp, vertical = 0.dp),
-                    modifier = Modifier
-                        .defaultMinSize(minWidth = 36.dp, minHeight = 36.dp)
-                        .height(36.dp)
+                    modifier = Modifier.defaultMinSize(minWidth = 36.dp).height(36.dp)
                 ) {
-                    Text(
-                        text = ">",
-                        color = Color.White,
-                        fontSize = 28.sp,         // Large enough
-                        lineHeight = 28.sp,       // Matches font size to avoid clipping
-                        modifier = Modifier
-                            .padding(bottom = 2.dp) // Tiny bottom margin to avoid visual clipping
-                    )
+                    Text(">", color = Color.White, fontSize = 28.sp, lineHeight = 28.sp)
                 }
-
             }
-
         }
     }
 
@@ -177,7 +209,8 @@ class WeekCalendarFragment : Fragment() {
     fun VerticalScrollGrid(
         startOfWeek: Calendar,
         viewModel: NotifViewModel,
-        onNotifSelected: (Notif) -> Unit
+        onNotifSelected: (Notif) -> Unit,
+        scrollState: ScrollState
     ) {
         val today = Calendar.getInstance()
         val hours = 0..23
@@ -188,11 +221,12 @@ class WeekCalendarFragment : Fragment() {
 
         Row(
             modifier = Modifier
-                .fillMaxHeight()
-                .verticalScroll(rememberScrollState())
+                .fillMaxWidth()
+                .height(1440.dp) // 24 hours * 60dp
+                .verticalScroll(scrollState)
         ) {
             Column(modifier = Modifier.width(40.dp)) {
-                Spacer(modifier = Modifier.height(32.dp))
+                // Removed spacer to align 00:00 at top
                 hours.forEach { hour ->
                     Box(
                         modifier = Modifier
@@ -221,34 +255,23 @@ class WeekCalendarFragment : Fragment() {
                 }
 
                 val notifColors = listOf(
-                    Color(0xFFB3D9FF), // Very Light Blue (1 notif)
-                    Color(0xFF80BFFF), // Light Blue (2 notifs)
-                    Color(0xFF4DA6FF), // Medium Blue (3 notifs)
-                    Color(0xFF1A8CFF), // Darker Blue (4 notifs)
-                    Color(0xFF0066CC)  // Very Dark Blue (5+ notifs)
+                    Color(0xFFB3D9FF), Color(0xFF80BFFF),
+                    Color(0xFF4DA6FF), Color(0xFF1A8CFF), Color(0xFF0066CC)
                 )
 
-
                 val notifCount = dayNotifs.size
-
                 val hasNotif = notifCount > 0
                 val dayColor = when {
                     !hasNotif && isToday -> Color(0xFF2E2E2E)
                     !hasNotif -> Color(0xFF1A1A1A)
-                    else -> {
-                        val colorIndex = (notifCount - 1).coerceIn(0, notifColors.lastIndex)
-                        notifColors[colorIndex]
-                    }
+                    else -> notifColors[(notifCount - 1).coerceIn(0, notifColors.lastIndex)]
                 }
-
 
                 Column(
                     modifier = Modifier
                         .width(53.dp)
-                        .then(
-                            if (isToday) Modifier.border(BorderStroke(2.dp, Color.Red))
-                            else Modifier.border(BorderStroke(0.5.dp, Color.DarkGray))
-                        )
+                        .then(if (isToday) Modifier.border(BorderStroke(2.dp, Color.Red))
+                        else Modifier.border(BorderStroke(0.5.dp, Color.DarkGray)))
                         .background(dayColor)
                         .clickable(enabled = hasNotif) {
                             dayNotifs.firstOrNull()?.let { onNotifSelected(it) }
@@ -259,7 +282,7 @@ class WeekCalendarFragment : Fragment() {
                         text = SimpleDateFormat("EEE\ndd", Locale.getDefault()).format(day.time),
                         modifier = Modifier
                             .fillMaxWidth()
-                            .height(32.dp),
+                            .padding(vertical = 4.dp),
                         textAlign = TextAlign.Center,
                         color = Color.White,
                         fontWeight = FontWeight.Bold
@@ -279,18 +302,6 @@ class WeekCalendarFragment : Fragment() {
                     }
                 }
             }
-
         }
     }
 }
-
-fun interpolateColor(from: Color, to: Color, fraction: Float): Color {
-    return Color(
-        red = from.red + (to.red - from.red) * fraction,
-        green = from.green + (to.green - from.green) * fraction,
-        blue = from.blue + (to.blue - from.blue) * fraction,
-        alpha = 1f
-    )
-}
-
-
