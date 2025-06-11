@@ -4,6 +4,12 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.SizeTransform
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -31,6 +37,7 @@ import androidx.fragment.app.Fragment
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.labworks.database.NotifViewModel
 import com.example.labworks.database.data.Notif
+import kotlinx.coroutines.delay
 import java.text.SimpleDateFormat
 import java.time.Instant
 import java.time.LocalDate
@@ -68,16 +75,11 @@ fun CustomMonthCalendar(fragment: Fragment) {
     val viewModel: NotifViewModel = viewModel()
 
     val notifColors = listOf(
-        Color(0xFFB3D9FF), // 1 notif - Lightest
-        Color(0xFF80BFFF), // 2 notifs
-        Color(0xFF4DA6FF), // 3 notifs
-        Color(0xFF1A8CFF), // 4 notifs
-        Color(0xFF0066CC)  // 5+ notifs - Darkest
+        Color(0xFFB3D9FF), Color(0xFF80BFFF),
+        Color(0xFF4DA6FF), Color(0xFF1A8CFF), Color(0xFF0066CC)
     )
 
-
     var selectedNotif by remember { mutableStateOf<Notif?>(null) }
-
     var allNotifs by remember { mutableStateOf(emptyList<Notif>()) }
     LaunchedEffect(Unit) {
         allNotifs = viewModel.getAllNotifs()
@@ -87,6 +89,16 @@ fun CustomMonthCalendar(fragment: Fragment) {
     val calendarHeight = screenHeight - 200.dp
     val totalRows = 6
     val cellHeight = calendarHeight / totalRows
+
+    // For animation
+    var monthOffset by remember { mutableStateOf(0) }
+    var displayedMonth by remember { mutableStateOf(currentMonth) }
+
+    // Buffer to delay animation start (so layout settles)
+    LaunchedEffect(currentMonth) {
+        delay(32)
+        displayedMonth = currentMonth
+    }
 
     Column(
         modifier = Modifier
@@ -99,15 +111,17 @@ fun CustomMonthCalendar(fragment: Fragment) {
             verticalAlignment = Alignment.CenterVertically
         ) {
             Box(
-                modifier = Modifier
-                    .background(Color.Gray.copy(alpha = 0.4f), RoundedCornerShape(6.dp))
+                modifier = Modifier.background(Color.Gray.copy(alpha = 0.4f), RoundedCornerShape(6.dp))
             ) {
                 TextButton(
-                    onClick = { currentMonth = currentMonth.minusMonths(1) },
+                    onClick = {
+                        currentMonth = currentMonth.minusMonths(1)
+                        monthOffset = -1
+                    },
                     contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp),
                     modifier = Modifier.defaultMinSize(minWidth = 40.dp, minHeight = 36.dp)
                 ) {
-                    Text("<", color = Color.White, fontSize = 24.sp, lineHeight = 24.sp)
+                    Text("<", color = Color.White, fontSize = 24.sp)
                 }
             }
 
@@ -119,18 +133,19 @@ fun CustomMonthCalendar(fragment: Fragment) {
             )
 
             Box(
-                modifier = Modifier
-                    .background(Color.Gray.copy(alpha = 0.4f), RoundedCornerShape(6.dp))
+                modifier = Modifier.background(Color.Gray.copy(alpha = 0.4f), RoundedCornerShape(6.dp))
             ) {
                 TextButton(
-                    onClick = { currentMonth = currentMonth.plusMonths(1) },
+                    onClick = {
+                        currentMonth = currentMonth.plusMonths(1)
+                        monthOffset = 1
+                    },
                     contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp),
                     modifier = Modifier.defaultMinSize(minWidth = 40.dp, minHeight = 36.dp)
                 ) {
-                    Text(">", color = Color.White, fontSize = 24.sp, lineHeight = 24.sp)
+                    Text(">", color = Color.White, fontSize = 24.sp)
                 }
             }
-
         }
 
         Spacer(modifier = Modifier.height(8.dp))
@@ -149,76 +164,86 @@ fun CustomMonthCalendar(fragment: Fragment) {
 
         Spacer(modifier = Modifier.height(8.dp))
 
-        val firstDayOffset = (currentMonth.atDay(1).dayOfWeek.value % 7)
-        val dates = buildList<LocalDate?> {
-            repeat(firstDayOffset) { add(null) }
-            for (day in 1..currentMonth.lengthOfMonth()) {
-                add(LocalDate.of(currentMonth.year, currentMonth.monthValue, day))
-            }
-        }
-
-        LazyVerticalGrid(
-            columns = GridCells.Fixed(7),
-            userScrollEnabled = false,
+        AnimatedContent(
+            targetState = displayedMonth,
+            transitionSpec = {
+                val direction = monthOffset
+                if (direction > 0) {
+                    slideInHorizontally(tween(300)) { it } togetherWith slideOutHorizontally(tween(300)) { -it }
+                } else {
+                    slideInHorizontally(tween(300)) { -it } togetherWith slideOutHorizontally(tween(300)) { it }
+                }.using(SizeTransform(clip = false) { _, _ -> tween(0) })
+            },
             modifier = Modifier
                 .fillMaxWidth()
                 .height(cellHeight * totalRows)
-        ) {
-            items(dates.size) { index ->
-                val date = dates[index]
-                val isSelected = date == selectedDate
-                val isToday = date == today
-
-
-                // Find all notifs for that day
-                val matchingNotifs = allNotifs.filter { notif ->
-                    val notifDate = Instant.ofEpochMilli(notif.timestamp)
-                        .atZone(ZoneId.systemDefault())
-                        .toLocalDate()
-                    notif.enabled && notifDate == date
+        ) { month ->
+            val firstDayOffset = (month.atDay(1).dayOfWeek.value % 7)
+            val dates = buildList<LocalDate?> {
+                repeat(firstDayOffset) { add(null) }
+                for (day in 1..month.lengthOfMonth()) {
+                    add(LocalDate.of(month.year, month.monthValue, day))
                 }
+            }
 
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(cellHeight)
-                        .then(
-                            if (isToday) Modifier.border(BorderStroke(2.dp, Color.Red))
-                            else Modifier.border(BorderStroke(0.5.dp, Color.DarkGray))
-                        )
-                        .background(
-                            when {
-                                isSelected -> Color(0xFF3F51B5)
-                                else -> {
-                                    val count = matchingNotifs.size
-                                    when {
-                                        count == 0 && isToday -> Color(0xFF424242)
-                                        count == 0 -> Color(0xFF1E1E1E)
-                                        else -> notifColors[(count - 1).coerceIn(0, notifColors.lastIndex)]
+            LazyVerticalGrid(
+                columns = GridCells.Fixed(7),
+                userScrollEnabled = false,
+                modifier = Modifier.fillMaxSize()
+            ) {
+                items(dates.size) { index ->
+                    val date = dates[index]
+                    val isSelected = date == selectedDate
+                    val isToday = date == today
+
+                    val matchingNotifs = allNotifs.filter { notif ->
+                        val notifDate = Instant.ofEpochMilli(notif.timestamp)
+                            .atZone(ZoneId.systemDefault())
+                            .toLocalDate()
+                        notif.enabled && notifDate == date
+                    }
+
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(cellHeight)
+                            .then(
+                                if (isToday) Modifier.border(BorderStroke(2.dp, Color.Red))
+                                else Modifier.border(BorderStroke(0.5.dp, Color.DarkGray))
+                            )
+                            .background(
+                                when {
+                                    isSelected -> Color(0xFF3F51B5)
+                                    else -> {
+                                        val count = matchingNotifs.size
+                                        when {
+                                            count == 0 && isToday -> Color(0xFF424242)
+                                            count == 0 -> Color(0xFF1E1E1E)
+                                            else -> notifColors[(count - 1).coerceIn(0, notifColors.lastIndex)]
+                                        }
                                     }
                                 }
-                            }
-                        )
-                        .clickable(enabled = matchingNotifs.isNotEmpty()) {
-                            date?.let {
-                                val dayStartMillis = it.atStartOfDay(ZoneId.systemDefault()).toInstant().toEpochMilli()
-                                val dayFragment = DayNotificationsFragment.newInstance(dayStartMillis)
-                                fragment.parentFragmentManager.beginTransaction()
-                                    .replace(R.id.fragment_container, dayFragment)
-                                    .addToBackStack(null)
-                                    .commit()
-                            }
+                            )
+                            .clickable(enabled = matchingNotifs.isNotEmpty()) {
+                            val notif = matchingNotifs.first()
+                            val dayFragment = DayNotificationsFragment.newInstance(notif.timestamp)
+                            fragment.parentFragmentManager.beginTransaction()
+                                .replace(R.id.fragment_container, dayFragment)
+                                .addToBackStack(null)
+                                .commit()
                         },
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text(
-                        text = date?.dayOfMonth?.toString() ?: "",
-                        color = Color.White,
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 16.sp
-                    )
+                                contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = date?.dayOfMonth?.toString() ?: "",
+                            color = Color.White,
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 16.sp
+                        )
+                    }
                 }
             }
         }
     }
 }
+

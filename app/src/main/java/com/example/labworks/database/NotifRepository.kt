@@ -33,5 +33,10 @@ class NotifRepository(
         return notifDao.insertNotifAndReturnId(notif)
     }
 
+    suspend fun getNotifById(id: Long): Notif? {
+        return notifDao.getNotifById(id)
+    }
+
+
 
 }
