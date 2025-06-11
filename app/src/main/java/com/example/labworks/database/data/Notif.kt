@@ -2,6 +2,7 @@ package com.example.labworks.database.data
 
 import androidx.room.Entity
 import androidx.room.PrimaryKey
+import androidx.room.Query
 
 // Represents a table inside the "notifs" database
 @Entity(tableName = "notifs")
@@ -19,3 +20,4 @@ data class Notif(
 ) {
 
 }
+

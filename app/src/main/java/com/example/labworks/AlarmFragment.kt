@@ -72,35 +72,24 @@ class AlarmFragment : Fragment() {
     ): View {
         return ComposeView(requireContext()).apply {
             setContent {
-                val launchMap = remember { mutableStateOf(false) }
-                AlarmScreen(launchMap)
-
-                if (launchMap.value) {
-                    val activity = LocalContext.current as FragmentActivity
-                    LaunchedEffect(Unit) {
-                        launchMap.value = false
-                        activity.supportFragmentManager.beginTransaction()
-                            .replace(android.R.id.content, MapFragment())
-                            .addToBackStack(null)
-                            .commit()
-                    }
-                }
+                AlarmScreen()
             }
         }
     }
 }
 
 @Composable
-fun AlarmScreen(launchMap: MutableState<Boolean>, viewModel: NotifViewModel = viewModel()) {
+fun AlarmScreen(viewModel: NotifViewModel = viewModel()) {
     val coroutineScope = rememberCoroutineScope()
     var notifs by remember { mutableStateOf<List<Notif>>(emptyList()) }
-    var selectedNotif by remember { mutableStateOf<Notif?>(null) }
 
     LaunchedEffect(Unit) {
         coroutineScope.launch {
             notifs = viewModel.getAllNotifs()
         }
     }
+
+    val context = LocalContext.current
 
     Box(
         modifier = Modifier
@@ -120,7 +109,13 @@ fun AlarmScreen(launchMap: MutableState<Boolean>, viewModel: NotifViewModel = vi
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(vertical = 4.dp)
-                            .clickable { selectedNotif = notif },
+                            .clickable {
+                                val activity = context as FragmentActivity
+                                activity.supportFragmentManager.beginTransaction()
+                                    .replace(android.R.id.content, EditNotificationFragment.newInstance(notif.id))
+                                    .addToBackStack(null)
+                                    .commit()
+                            },
                         colors = CardDefaults.cardColors(containerColor = Color(0xFF1E1E1E)),
                         shape = RoundedCornerShape(12.dp)
                     ) {
@@ -154,22 +149,8 @@ fun AlarmScreen(launchMap: MutableState<Boolean>, viewModel: NotifViewModel = vi
                     }
                 }
             }
-            if (selectedNotif != null) {
-                NotifDetailsDialog(
-                    notif = selectedNotif!!,
-                    onDismiss = { selectedNotif = null },
-                    onDelete = {
-                        coroutineScope.launch {
-                            viewModel.deleteNotif(it)
-                            notifs = viewModel.getAllNotifs()
-                            selectedNotif = null
-                        }
-                    }
-                )
-            }
         }
 
-        val context = LocalContext.current
         FloatingActionButton(
             onClick = {
                 context.startActivity(Intent(context, CreateNotificationActivity::class.java))
@@ -182,57 +163,6 @@ fun AlarmScreen(launchMap: MutableState<Boolean>, viewModel: NotifViewModel = vi
         }
     }
 }
-
-@Composable
-fun NotifDetailsDialog(
-    notif: Notif,
-    onDismiss: () -> Unit,
-    onDelete: (Notif) -> Unit
-) {
-    Dialog(onDismissRequest = onDismiss) {
-        Card(
-            shape = RoundedCornerShape(16.dp),
-            modifier = Modifier.padding(16.dp),
-            colors = CardDefaults.cardColors(containerColor = Color(0xFF1E1E1E))
-        ) {
-            Column(
-                modifier = Modifier.padding(24.dp),
-                verticalArrangement = Arrangement.spacedBy(16.dp),
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                Text(
-                    text = "Alarm: ${notif.title}",
-                    fontSize = 18.sp,
-                    color = Color.White,
-                    fontWeight = FontWeight.Bold
-                )
-                Text(
-                    text = "Time: ${SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.getDefault()).format(Date(notif.timestamp))}",
-                    fontSize = 16.sp,
-                    color = Color.Gray
-                )
-                notif.description?.takeIf { it.isNotBlank() }?.let {
-                    Text("Description: $it", fontSize = 16.sp, color = Color.LightGray)
-                }
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceEvenly
-                ) {
-                    TextButton(onClick = onDismiss) {
-                        Text("Cancel")
-                    }
-                    TextButton(onClick = { onDelete(notif) }) {
-                        Text("Delete", color = Color.Red)
-                    }
-                }
-            }
-        }
-    }
-}
-
-
-
-
 
 @Composable
 fun AlarmHeader() {
@@ -282,6 +212,7 @@ fun AlarmHeader() {
         }
     }
 }
+
 
 
 

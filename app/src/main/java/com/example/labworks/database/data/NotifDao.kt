@@ -17,9 +17,6 @@ interface NotifDao {
     @Query("SELECT * FROM notifs ORDER BY title ASC")
     suspend fun getAllNotifs(): List<Notif>
 
-    @Query("SELECT * FROM notifs WHERE id = :id")
-    suspend fun getNotif(id : Int): Notif
-
     @Delete
     suspend fun deleteNotif(notif: Notif)
 
@@ -36,4 +33,7 @@ interface NotifDao {
     // Existing methods
     @Insert
     suspend fun insertNotifAndReturnId(notif: Notif): Long
+
+    @Query("SELECT * FROM notifs WHERE id = :id LIMIT 1")
+    suspend fun getNotifById(id: Long): Notif?
 }

@@ -1,6 +1,10 @@
 package com.example.labworks
 
+import android.annotation.SuppressLint
 import android.os.Bundle
+import android.view.LayoutInflater
+import android.view.View
+import android.view.ViewGroup
 import androidx.compose.animation.*
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.BorderStroke
@@ -27,277 +31,225 @@ import androidx.fragment.app.Fragment
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.labworks.database.NotifViewModel
 import com.example.labworks.database.data.Notif
+import kotlinx.coroutines.delay
 import java.text.SimpleDateFormat
 import java.util.*
 
 class WeekCalendarFragment : Fragment() {
-
-    override fun onCreateView(
-        inflater: android.view.LayoutInflater, container: android.view.ViewGroup?,
-        savedInstanceState: Bundle?
-    ): android.view.View {
+    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
         return ComposeView(requireContext()).apply {
             setContent {
-                WeekCalendarScreen()
+                MaterialTheme(colorScheme = darkColorScheme()) {
+                    Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
+                        CustomWeekCalendar(this@WeekCalendarFragment)
+                    }
+                }
             }
         }
     }
+}
 
-    @Composable
-    fun WeekCalendarScreen() {
-        val currentWeek = remember { mutableStateOf(Calendar.getInstance().apply { set(Calendar.DAY_OF_WEEK, Calendar.MONDAY) }) }
-        val weekOffset = remember { mutableStateOf(0) }
-        val scrollState = rememberScrollState()
-        val viewModel: NotifViewModel = viewModel()
-        var selectedNotif by remember { mutableStateOf<Notif?>(null) }
+@SuppressLint("UnusedBoxWithConstraintsScope")
+@Composable
+fun CustomWeekCalendar(fragment: Fragment) {
+    val viewModel: NotifViewModel = viewModel()
+    val today = Calendar.getInstance()
+
+    var currentWeek by remember {
+        mutableStateOf(Calendar.getInstance().apply { set(Calendar.DAY_OF_WEEK, Calendar.MONDAY) })
+    }
+    var weekOffset by remember { mutableStateOf(0) }
+    var displayedTime by remember { mutableStateOf(currentWeek.timeInMillis) }
+
+    // Delay before triggering animation
+    LaunchedEffect(currentWeek.timeInMillis) {
+        delay(32)
+        displayedTime = currentWeek.timeInMillis
+    }
+
+    val hours = 0..23
+    val notifColors = listOf(
+        Color(0xFFB3D9FF), Color(0xFF80BFFF),
+        Color(0xFF4DA6FF), Color(0xFF1A8CFF), Color(0xFF0066CC)
+    )
+
+    BoxWithConstraints(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color(0xFF121212))
+    ) {
+        val headerHeight = 60.dp
+        val scrollAreaHeight = 1440.dp
 
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .background(Color(0xFF121212))
-                .padding(top = 24.dp)
         ) {
-            WeekNavigationBar(currentCalendar = currentWeek, weekOffset = weekOffset)
-
-            BoxWithConstraints(
+            // Navigation bar
+            Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .weight(1f)
-                    .clipToBounds()
+                    .height(headerHeight)
+                    .padding(top = 16.dp, start = 8.dp, end = 8.dp),
+                horizontalArrangement = Arrangement.Center,
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                val fixedHeight = maxHeight
-
-                AnimatedContent(
-                    targetState = currentWeek.value.timeInMillis,
-                    transitionSpec = {
-                        val direction = weekOffset.value
-                        if (direction > 0) {
-                            slideInHorizontally(
-                                animationSpec = tween(300),
-                                initialOffsetX = { width -> width }
-                            ) togetherWith slideOutHorizontally(
-                                animationSpec = tween(300),
-                                targetOffsetX = { width -> -width }
-                            )
-                        } else {
-                            slideInHorizontally(
-                                animationSpec = tween(300),
-                                initialOffsetX = { width -> -width }
-                            ) togetherWith slideOutHorizontally(
-                                animationSpec = tween(300),
-                                targetOffsetX = { width -> width }
-                            )
-                        }.using(SizeTransform(clip = true))
-                    }
-                ) { _ ->
-                    VerticalScrollGrid(
-                        startOfWeek = Calendar.getInstance().apply {
-                            timeInMillis = currentWeek.value.timeInMillis
-                            set(Calendar.DAY_OF_WEEK, Calendar.MONDAY)
-                        },
-                        viewModel = viewModel,
-                        onNotifSelected = { notif ->
-                            val fragment = DayNotificationsFragment.newInstance(notif.timestamp)
-                            parentFragmentManager.beginTransaction()
-                                .replace(R.id.fragment_container, fragment)
-                                .addToBackStack(null)
-                                .commit()
-                        },
-                        scrollState = scrollState
-                    )
-                }
-            }
-
-            // Optional: scroll to current hour on first load or week change
-            LaunchedEffect(currentWeek.value.timeInMillis) {
-                val now = Calendar.getInstance()
-                val currentHour = now.get(Calendar.HOUR_OF_DAY)
-                weekOffset.value = 0
-            }
-        }
-
-        selectedNotif?.let { notif ->
-            AlertDialog(
-                onDismissRequest = { selectedNotif = null },
-                confirmButton = {
-                    TextButton(onClick = { selectedNotif = null }) {
-                        Text("Close")
-                    }
-                },
-                title = { Text("Alarm Info", fontWeight = FontWeight.Bold) },
-                text = {
-                    Column {
-                        Text("Title: ${notif.title}")
-                        Text("Date: ${SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date(notif.timestamp))}")
-                        Text("Enabled: ${notif.enabled}")
-                        Text("Start Hour: ${notif.startHour}:00")
-                        Text("End Hour: ${notif.endHour}:00")
-                    }
-                },
-                containerColor = Color(0xFF1E1E1E),
-                titleContentColor = Color.White,
-                textContentColor = Color.LightGray
-            )
-        }
-    }
-
-    @Composable
-    fun WeekNavigationBar(currentCalendar: MutableState<Calendar>, weekOffset: MutableState<Int>) {
-        val weekStart = remember(currentCalendar.value) {
-            (currentCalendar.value.clone() as Calendar).apply {
-                set(Calendar.DAY_OF_WEEK, Calendar.MONDAY)
-            }
-        }
-        val weekEnd = (weekStart.clone() as Calendar).apply { add(Calendar.DAY_OF_MONTH, 6) }
-        val dateFormat = SimpleDateFormat("MMM dd", Locale.getDefault())
-        val yearFormat = SimpleDateFormat("yyyy", Locale.getDefault())
-
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 8.dp),
-            horizontalArrangement = Arrangement.Center,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Box(
-                modifier = Modifier
-                    .background(Color.Gray.copy(alpha = 0.4f), RoundedCornerShape(6.dp))
-            ) {
-                TextButton(
-                    onClick = {
-                        weekOffset.value = -1
-                        currentCalendar.value = (currentCalendar.value.clone() as Calendar).apply {
-                            add(Calendar.WEEK_OF_YEAR, -1)
-                        }
-                    },
-                    contentPadding = PaddingValues(horizontal = 4.dp, vertical = 0.dp),
-                    modifier = Modifier.defaultMinSize(minWidth = 36.dp).height(36.dp)
+                // ◀ Left Arrow Button
+                Box(
+                    modifier = Modifier
+                        .background(Color.Gray.copy(alpha = 0.4f), RoundedCornerShape(6.dp))
                 ) {
-                    Text("<", color = Color.White, fontSize = 28.sp, lineHeight = 28.sp)
-                }
-            }
-
-            Text(
-                text = "Week of ${dateFormat.format(weekStart.time)} – ${dateFormat.format(weekEnd.time)}, ${yearFormat.format(weekStart.time)}",
-                modifier = Modifier.weight(1f).padding(horizontal = 24.dp),
-                color = Color.White,
-                textAlign = TextAlign.Center,
-                fontWeight = FontWeight.Bold
-            )
-
-            Box(
-                modifier = Modifier
-                    .background(Color.Gray.copy(alpha = 0.4f), RoundedCornerShape(6.dp))
-            ) {
-                TextButton(
-                    onClick = {
-                        weekOffset.value = 1
-                        currentCalendar.value = (currentCalendar.value.clone() as Calendar).apply {
-                            add(Calendar.WEEK_OF_YEAR, 1)
-                        }
-                    },
-                    contentPadding = PaddingValues(horizontal = 4.dp, vertical = 0.dp),
-                    modifier = Modifier.defaultMinSize(minWidth = 36.dp).height(36.dp)
-                ) {
-                    Text(">", color = Color.White, fontSize = 28.sp, lineHeight = 28.sp)
-                }
-            }
-        }
-    }
-
-    @Composable
-    fun VerticalScrollGrid(
-        startOfWeek: Calendar,
-        viewModel: NotifViewModel,
-        onNotifSelected: (Notif) -> Unit,
-        scrollState: ScrollState
-    ) {
-        val today = Calendar.getInstance()
-        val hours = 0..23
-
-        val notifs by produceState(initialValue = emptyList<Notif>(), viewModel) {
-            value = viewModel.getAllNotifs()
-        }
-
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(1440.dp) // 24 hours * 60dp
-                .verticalScroll(scrollState)
-        ) {
-            Column(modifier = Modifier.width(40.dp)) {
-                // Removed spacer to align 00:00 at top
-                hours.forEach { hour ->
-                    Box(
-                        modifier = Modifier
-                            .height(60.dp)
-                            .fillMaxWidth(),
-                        contentAlignment = Alignment.Center
+                    TextButton(
+                        onClick = {
+                            currentWeek = (currentWeek.clone() as Calendar).apply {
+                                add(Calendar.WEEK_OF_YEAR, -1)
+                            }
+                            weekOffset = -1
+                        },
+                        contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp),
+                        modifier = Modifier.defaultMinSize(minWidth = 40.dp, minHeight = 36.dp)
                     ) {
-                        Text(
-                            text = String.format("%02d:00", hour),
-                            fontSize = 12.sp,
-                            color = Color.Gray
-                        )
+                        Text("<", color = Color.White, fontSize = 24.sp, lineHeight = 24.sp)
                     }
                 }
-            }
 
-            repeat(7) { i ->
-                val day = (startOfWeek.clone() as Calendar).apply { add(Calendar.DAY_OF_WEEK, i) }
-                val isToday = today.get(Calendar.YEAR) == day.get(Calendar.YEAR) &&
-                        today.get(Calendar.DAY_OF_YEAR) == day.get(Calendar.DAY_OF_YEAR)
+                // 📆 Week Range Label
+                val dateFormat = SimpleDateFormat("MMM dd", Locale.getDefault())
+                val yearFormat = SimpleDateFormat("yyyy", Locale.getDefault())
+                val weekStart = (currentWeek.clone() as Calendar).apply { set(Calendar.DAY_OF_WEEK, Calendar.MONDAY) }
+                val weekEnd = (weekStart.clone() as Calendar).apply { add(Calendar.DAY_OF_MONTH, 6) }
 
-                val formattedDay = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(day.time)
-
-                val dayNotifs = notifs.filter {
-                    SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date(it.timestamp)) == formattedDay && it.enabled
-                }
-
-                val notifColors = listOf(
-                    Color(0xFFB3D9FF), Color(0xFF80BFFF),
-                    Color(0xFF4DA6FF), Color(0xFF1A8CFF), Color(0xFF0066CC)
+                Text(
+                    text = "Week of ${dateFormat.format(weekStart.time)} – ${dateFormat.format(weekEnd.time)}, ${yearFormat.format(weekStart.time)}",
+                    modifier = Modifier
+                        .weight(1f)
+                        .padding(horizontal = 24.dp),
+                    color = Color.White,
+                    textAlign = TextAlign.Center,
+                    fontWeight = FontWeight.Bold
                 )
 
-                val notifCount = dayNotifs.size
-                val hasNotif = notifCount > 0
-                val dayColor = when {
-                    !hasNotif && isToday -> Color(0xFF2E2E2E)
-                    !hasNotif -> Color(0xFF1A1A1A)
-                    else -> notifColors[(notifCount - 1).coerceIn(0, notifColors.lastIndex)]
-                }
-
-                Column(
+                // ▶ Right Arrow Button
+                Box(
                     modifier = Modifier
-                        .width(53.dp)
-                        .then(if (isToday) Modifier.border(BorderStroke(2.dp, Color.Red))
-                        else Modifier.border(BorderStroke(0.5.dp, Color.DarkGray)))
-                        .background(dayColor)
-                        .clickable(enabled = hasNotif) {
-                            dayNotifs.firstOrNull()?.let { onNotifSelected(it) }
-                        }
-                        .padding(horizontal = 4.dp)
+                        .background(Color.Gray.copy(alpha = 0.4f), RoundedCornerShape(6.dp))
                 ) {
-                    Text(
-                        text = SimpleDateFormat("EEE\ndd", Locale.getDefault()).format(day.time),
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(vertical = 4.dp),
-                        textAlign = TextAlign.Center,
-                        color = Color.White,
-                        fontWeight = FontWeight.Bold
-                    )
+                    TextButton(
+                        onClick = {
+                            currentWeek = (currentWeek.clone() as Calendar).apply {
+                                add(Calendar.WEEK_OF_YEAR, 1)
+                            }
+                            weekOffset = 1
+                        },
+                        contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp),
+                        modifier = Modifier.defaultMinSize(minWidth = 40.dp, minHeight = 36.dp)
+                    ) {
+                        Text(">", color = Color.White, fontSize = 24.sp, lineHeight = 24.sp)
+                    }
+                }
+            }
 
-                    for (hour in hours) {
-                        Box(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(60.dp)
-                                .background(dayColor)
-                                .padding(2.dp),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Text("", color = Color.White)
+            // Outer fixed scroll area
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(scrollAreaHeight) // same as column content height
+                    .verticalScroll(rememberScrollState())
+            ) {
+                AnimatedContent(
+                    targetState = displayedTime,
+                    transitionSpec = {
+                        if (weekOffset > 0) {
+                            slideInHorizontally(tween(300)) { it } togetherWith slideOutHorizontally(tween(300)) { -it }
+                        } else {
+                            slideInHorizontally(tween(300)) { -it } togetherWith slideOutHorizontally(tween(300)) { it }
+                        }.using(SizeTransform(clip = false) { _, _ -> tween(0) })
+                    },
+                    modifier = Modifier
+                        .fillMaxSize()
+                ) { weekMillis ->
+                    val startOfWeek = Calendar.getInstance().apply {
+                        timeInMillis = weekMillis
+                        set(Calendar.DAY_OF_WEEK, Calendar.MONDAY)
+                    }
+
+                    val notifs by produceState(initialValue = emptyList<Notif>(), viewModel) {
+                        value = viewModel.getAllNotifs()
+                    }
+
+                    Row(Modifier.fillMaxSize()) {
+                        // Time column
+                        Column(Modifier.width(40.dp)) {
+                            hours.forEach { hour ->
+                                Box(
+                                    modifier = Modifier.height(60.dp).fillMaxWidth(),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Text(
+                                        text = String.format("%02d:00", hour),
+                                        fontSize = 12.sp,
+                                        color = Color.Gray
+                                    )
+                                }
+                            }
+                        }
+
+                        // 7 day columns
+                        repeat(7) { i ->
+                            val day = (startOfWeek.clone() as Calendar).apply { add(Calendar.DAY_OF_WEEK, i) }
+                            val isToday = today.get(Calendar.YEAR) == day.get(Calendar.YEAR) &&
+                                    today.get(Calendar.DAY_OF_YEAR) == day.get(Calendar.DAY_OF_YEAR)
+
+                            val formatted = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(day.time)
+                            val dayNotifs = notifs.filter {
+                                SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date(it.timestamp)) == formatted && it.enabled
+                            }
+
+                            val notifCount = dayNotifs.size
+                            val dayColor = when {
+                                !isToday && notifCount == 0 -> Color(0xFF1A1A1A)
+                                isToday && notifCount == 0 -> Color(0xFF2E2E2E)
+                                else -> notifColors[(notifCount - 1).coerceIn(0, notifColors.lastIndex)]
+                            }
+
+                            Column(
+                                modifier = Modifier
+                                    .width(53.dp)
+                                    .then(if (isToday) Modifier.border(BorderStroke(2.dp, Color.Red))
+                                    else Modifier.border(BorderStroke(0.5.dp, Color.DarkGray)))
+                                    .background(dayColor)
+                                    .padding(horizontal = 4.dp)
+                                    .clickable(enabled = dayNotifs.isNotEmpty()) {
+                                        val notif = dayNotifs.first()
+                                        val dayFragment = DayNotificationsFragment.newInstance(notif.timestamp)
+                                        fragment.parentFragmentManager.beginTransaction()
+                                            .replace(R.id.fragment_container, dayFragment)
+                                            .addToBackStack(null)
+                                            .commit()
+                                    }
+                            ) {
+                                Text(
+                                    text = SimpleDateFormat("EEE\ndd", Locale.getDefault()).format(day.time),
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(vertical = 4.dp),
+                                    textAlign = TextAlign.Center,
+                                    color = Color.White,
+                                    fontWeight = FontWeight.Bold
+                                )
+
+                                hours.forEach {
+                                    Box(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .height(60.dp)
+                                            .background(dayColor),
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        Text("")
+                                    }
+                                }
+                            }
                         }
                     }
                 }
@@ -305,3 +257,5 @@ class WeekCalendarFragment : Fragment() {
         }
     }
 }
+
+

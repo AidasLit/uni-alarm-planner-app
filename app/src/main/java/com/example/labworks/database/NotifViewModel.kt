@@ -24,6 +24,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import android.provider.Settings
 import android.util.Log
+import com.example.labworks.database.data.NotifDao
 import java.util.Date
 
 
@@ -113,6 +114,10 @@ class NotifViewModel(application: Application) : AndroidViewModel(application) {
             val savedNotif = notif.copy(id = id)
             scheduleAlarm(context, savedNotif)
         }
+    }
+
+    suspend fun getNotifById(id: Long): Notif? {
+        return repository.getNotifById(id)
     }
 
 
