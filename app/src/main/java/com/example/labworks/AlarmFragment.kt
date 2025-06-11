@@ -141,8 +141,10 @@ fun AlarmScreen(viewModel: NotifViewModel = viewModel()) {
                                     viewModel.addNotif(notif)
                                 },
                                 colors = SwitchDefaults.colors(
-                                    checkedThumbColor = Color.Green,
-                                    uncheckedThumbColor = Color.Gray
+                                    checkedThumbColor = Color.Blue,
+                                    uncheckedThumbColor = Color(0xFF516277),
+                                    checkedTrackColor = Color(0xFF224B7A),
+                                    uncheckedTrackColor = Color.Gray
                                 )
                             )
                         }
@@ -196,7 +198,7 @@ fun AlarmHeader() {
                     .size(40.dp)
                     .background(
                         brush = Brush.linearGradient(
-                            listOf(Color(0xFF8E2DE2), Color(0xFF4A00E0))
+                            listOf(Color(0xFF1565C0), Color(0xFF1565C0))
                         ),
                         shape = CircleShape
                     ),

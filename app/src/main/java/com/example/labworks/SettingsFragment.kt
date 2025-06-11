@@ -267,7 +267,7 @@ fun TimeFormatSetting(prefs: android.content.SharedPreferences, textColor: Color
                     is24h = false
                     prefs.edit().putBoolean("use24Hour", false).apply()
                 },
-                colors = RadioButtonDefaults.colors(selectedColor = Color.Blue)
+                colors = RadioButtonDefaults.colors(selectedColor = Color.Green)
             )
             Text("12-hour format", modifier = Modifier.padding(start = 8.dp), color = textColor)
         }
@@ -323,7 +323,7 @@ fun SoundPickerSetting(
                     }
                 }
                 ringtonePickerLauncher.launch(intent)
-            }) {
+            }, colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF516277))) {
                 Text("Pick Sound")
             }
 
@@ -331,14 +331,12 @@ fun SoundPickerSetting(
 
 
 
-            // Color animation
             val buttonColor by animateColorAsState(
-                targetValue = if (isPlaying) Color.Red else MaterialTheme.colorScheme.primary,
+                targetValue = if (isPlaying) Color.Red else Color(0xFF516277),
                 animationSpec = tween(300),
                 label = "buttonColor"
             )
 
-// Rotation animation
             val infiniteTransition = rememberInfiniteTransition(label = "vibration")
             val rotation by infiniteTransition.animateFloat(
                 initialValue = -10f,
@@ -365,16 +363,12 @@ fun SoundPickerSetting(
                 },
                 enabled = currentUri != null,
                 colors = ButtonDefaults.buttonColors(containerColor = buttonColor),
-                modifier = Modifier
-                    .graphicsLayer {
-                        rotationZ = if (isPlaying) rotation else 0f
-                    }
+                modifier = Modifier.graphicsLayer {
+                    rotationZ = if (isPlaying) rotation else 0f
+                }
             ) {
                 Text(if (isPlaying) "Stop" else "Play")
             }
-
-
-
 
         }
 
@@ -422,7 +416,7 @@ fun AlarmDurationSetting(prefs: SharedPreferences, textColor: Color) {
                     scaleY = scale
                 }
         ) {
-            OutlinedButton(
+            Button(
                 onClick = {
                     pressed = true
                     expanded = true
@@ -430,7 +424,8 @@ fun AlarmDurationSetting(prefs: SharedPreferences, textColor: Color) {
                         kotlinx.coroutines.delay(150)
                         pressed = false
                     }
-                }
+                },
+                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF516277))
             ) {
                 Text(durationsLabels[selectedIndex])
             }
@@ -469,10 +464,12 @@ fun VibrationStrengthSetting(prefs: SharedPreferences, textColor: Color) {
         Spacer(modifier = Modifier.height(16.dp))
 
         Box {
-            OutlinedButton(onClick = { expanded = true }) {
+            Button(
+                onClick = { expanded = true },
+                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF516277))
+            ) {
                 Text(strengths[selectedIndex])
             }
-
             DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
                 strengths.forEachIndexed { index, label ->
                     DropdownMenuItem(
@@ -529,12 +526,25 @@ fun AboutSetting(textColor: Color) {
 fun PrivacyPolicySetting(textColor: Color) {
     val context = LocalContext.current
     val privacyText = readRawTextFile(context, R.raw.privacy)
-    Text(
-        text = privacyText,
-        fontSize = 16.sp,
-        color = textColor
-    )
+
+    Column {
+        Text(
+            text = "Privacy Policy",
+            fontSize = 20.sp,
+            fontWeight = FontWeight.Bold,
+            color = textColor
+        )
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        Text(
+            text = privacyText,
+            fontSize = 16.sp,
+            color = Color.White
+        )
+    }
 }
+
 
 @Composable
 fun readRawTextFile(context: Context, rawResId: Int): String {
