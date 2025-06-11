@@ -21,6 +21,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.*
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.TextStyle
@@ -48,11 +49,6 @@ class EditNotificationFragment : Fragment() {
             fragment.arguments = args
             return fragment
         }
-    }
-
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        setHasOptionsMenu(true) // Ensure onActivityResult works if used
     }
 
     override fun onCreateView(
@@ -90,6 +86,7 @@ fun EditNotificationScreen(
     val calendar = remember { Calendar.getInstance() }
     var dateText by remember { mutableStateOf("") }
     var timeText by remember { mutableStateOf("") }
+    var showDeleteDialog by remember { mutableStateOf(false) }
 
     val mapLauncher = rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
         if (result.resultCode == Activity.RESULT_OK) {
@@ -153,6 +150,32 @@ fun EditNotificationScreen(
         )
     }
 
+    if (showDeleteDialog) {
+        AlertDialog(
+            onDismissRequest = { showDeleteDialog = false },
+            title = { Text("Confirm Delete") },
+            text = { Text("Are you sure you want to delete this notification? This action cannot be undone.") },
+            confirmButton = {
+                TextButton(onClick = {
+                    showDeleteDialog = false
+                    notif?.let {
+                        scope.launch {
+                            viewModel.deleteNotif(it)
+                            (context as? FragmentActivity)?.supportFragmentManager?.popBackStack()
+                        }
+                    }
+                }) {
+                    Text("Delete", color = Color.Red)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDeleteDialog = false }) {
+                    Text("Cancel")
+                }
+            }
+        )
+    }
+
     Scaffold(
         containerColor = Color(0xFF121212),
         topBar = {
@@ -171,33 +194,56 @@ fun EditNotificationScreen(
             )
         },
         bottomBar = {
-            Button(
-                onClick = {
-                    notif?.let { current ->
-                        val updated = current.copy(
-                            title = title.text.trim(),
-                            description = description.text.trim(),
-                            timestamp = calendar.timeInMillis,
-                            latitude = selectedLat,
-                            longitude = selectedLng
-                        )
-                        scope.launch {
-                            viewModel.addNotif(updated)
-                            (context as? FragmentActivity)?.supportFragmentManager?.popBackStack()
-                        }
-                    }
-                },
+            Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(90.dp)
-                    .padding(16.dp),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = Color.DarkGray,
-                    contentColor = Color.White
-                ),
-                shape = RoundedCornerShape(10.dp)
+                    .padding(horizontal = 16.dp, vertical = 24.dp)
             ) {
-                Text("Save Changes", fontSize = 18.sp, fontWeight = FontWeight.Bold)
+                Button(
+                    onClick = {
+                        showDeleteDialog = true
+                    },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(60.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = Color.Red,
+                        contentColor = Color.White
+                    ),
+                    shape = RoundedCornerShape(10.dp)
+                ) {
+                    Text("Delete Notification", fontSize = 16.sp, fontWeight = FontWeight.Medium)
+                }
+
+                Spacer(modifier = Modifier.height(12.dp))
+
+                Button(
+                    onClick = {
+                        notif?.let { current ->
+                            val updated = current.copy(
+                                title = title.text.trim(),
+                                description = description.text.trim(),
+                                timestamp = calendar.timeInMillis,
+                                latitude = selectedLat,
+                                longitude = selectedLng
+                            )
+                            scope.launch {
+                                viewModel.addNotif(updated)
+                                (context as? FragmentActivity)?.supportFragmentManager?.popBackStack()
+                            }
+                        }
+                    },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(60.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = Color(0xFF2E7D32),
+                        contentColor = Color.White
+                    ),
+                    shape = RoundedCornerShape(10.dp)
+                ) {
+                    Text("Save Changes", fontSize = 18.sp, fontWeight = FontWeight.Bold)
+                }
             }
         }
     ) { padding ->
