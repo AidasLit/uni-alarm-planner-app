@@ -43,6 +43,8 @@ import java.time.Instant
 import java.time.LocalDate
 import java.time.YearMonth
 import java.time.ZoneId
+import androidx.compose.foundation.gestures.detectHorizontalDragGestures
+import androidx.compose.ui.input.pointer.pointerInput
 import java.time.format.TextStyle
 import java.util.*
 
@@ -104,6 +106,17 @@ fun CustomMonthCalendar(fragment: Fragment) {
         modifier = Modifier
             .fillMaxSize()
             .padding(horizontal = 12.dp, vertical = 16.dp)
+            .pointerInput(currentMonth) {
+                detectHorizontalDragGestures { _, dragAmount ->
+                    if (dragAmount > 50) {
+                        currentMonth = currentMonth.minusMonths(1)
+                        monthOffset = -1
+                    } else if (dragAmount < -50) {
+                        currentMonth = currentMonth.plusMonths(1)
+                        monthOffset = 1
+                    }
+                }
+            }
     ) {
         Row(
             modifier = Modifier.fillMaxWidth(),
