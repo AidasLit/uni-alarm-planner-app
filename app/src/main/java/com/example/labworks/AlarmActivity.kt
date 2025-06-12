@@ -16,6 +16,9 @@ import android.widget.Button
 import android.widget.TextView
 import android.view.animation.AnimationUtils
 import android.view.View
+import java.text.SimpleDateFormat
+import java.util.*
+
 
 
 class AlarmActivity : Activity() {
@@ -29,6 +32,7 @@ class AlarmActivity : Activity() {
     private var accelerometer: Sensor? = null
     private var lastShakeTime = 0L
 
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -38,6 +42,7 @@ class AlarmActivity : Activity() {
                     WindowManager.LayoutParams.FLAG_TURN_SCREEN_ON or
                     WindowManager.LayoutParams.FLAG_FULLSCREEN
         )
+
 
         setContentView(R.layout.activity_alarm)
 
@@ -95,6 +100,15 @@ class AlarmActivity : Activity() {
         val rootLayout = findViewById<View>(R.id.activity_alarm)
         val shake = AnimationUtils.loadAnimation(this, R.anim.shake)
         rootLayout.startAnimation(shake)
+
+        val timeView = findViewById<TextView>(R.id.alarmTime)
+        val currentTime = Calendar.getInstance().time
+        val use24Hour = prefs.getBoolean("use24Hour", true)
+        val formatter = if (use24Hour)
+            SimpleDateFormat("HH:mm", Locale.getDefault())
+        else
+            SimpleDateFormat("hh:mm a", Locale.getDefault())
+        timeView.text = formatter.format(currentTime)
 
     }
 

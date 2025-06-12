@@ -8,10 +8,10 @@ import android.view.ViewGroup
 import androidx.compose.animation.*
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -20,8 +20,8 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -77,15 +77,29 @@ fun CustomWeekCalendar(fragment: Fragment) {
         modifier = Modifier
             .fillMaxSize()
             .background(Color(0xFF121212))
+            .pointerInput(currentWeek) {
+                detectHorizontalDragGestures { _, dragAmount ->
+                    if (dragAmount > 50) {
+                        // ➡ Swipe right: go to previous week
+                        currentWeek = (currentWeek.clone() as Calendar).apply {
+                            add(Calendar.WEEK_OF_YEAR, -1)
+                        }
+                        weekOffset = -1
+                    } else if (dragAmount < -50) {
+                        // ⬅ Swipe left: go to next week
+                        currentWeek = (currentWeek.clone() as Calendar).apply {
+                            add(Calendar.WEEK_OF_YEAR, 1)
+                        }
+                        weekOffset = 1
+                    }
+                }
+            }
     ) {
         val headerHeight = 60.dp
         val scrollAreaHeight = 1440.dp
 
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-        ) {
-            // Navigation bar
+        Column(modifier = Modifier.fillMaxSize()) {
+            // Top Navigation Row
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -94,11 +108,8 @@ fun CustomWeekCalendar(fragment: Fragment) {
                 horizontalArrangement = Arrangement.Center,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                // ◀ Left Arrow Button
-                Box(
-                    modifier = Modifier
-                        .background(Color.Gray.copy(alpha = 0.4f), RoundedCornerShape(6.dp))
-                ) {
+                // ◀ Previous Week
+                Box(modifier = Modifier.background(Color.Gray.copy(alpha = 0.4f), RoundedCornerShape(6.dp))) {
                     TextButton(
                         onClick = {
                             currentWeek = (currentWeek.clone() as Calendar).apply {
@@ -109,11 +120,11 @@ fun CustomWeekCalendar(fragment: Fragment) {
                         contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp),
                         modifier = Modifier.defaultMinSize(minWidth = 40.dp, minHeight = 36.dp)
                     ) {
-                        Text("<", color = Color.White, fontSize = 24.sp, lineHeight = 24.sp)
+                        Text("<", color = Color.White, fontSize = 24.sp)
                     }
                 }
 
-                // 📆 Week Range Label
+                // 📆 Week Label
                 val dateFormat = SimpleDateFormat("MMM dd", Locale.getDefault())
                 val yearFormat = SimpleDateFormat("yyyy", Locale.getDefault())
                 val weekStart = (currentWeek.clone() as Calendar).apply { set(Calendar.DAY_OF_WEEK, Calendar.MONDAY) }
@@ -129,11 +140,8 @@ fun CustomWeekCalendar(fragment: Fragment) {
                     fontWeight = FontWeight.Bold
                 )
 
-                // ▶ Right Arrow Button
-                Box(
-                    modifier = Modifier
-                        .background(Color.Gray.copy(alpha = 0.4f), RoundedCornerShape(6.dp))
-                ) {
+                // ▶ Next Week
+                Box(modifier = Modifier.background(Color.Gray.copy(alpha = 0.4f), RoundedCornerShape(6.dp))) {
                     TextButton(
                         onClick = {
                             currentWeek = (currentWeek.clone() as Calendar).apply {
@@ -144,16 +152,16 @@ fun CustomWeekCalendar(fragment: Fragment) {
                         contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp),
                         modifier = Modifier.defaultMinSize(minWidth = 40.dp, minHeight = 36.dp)
                     ) {
-                        Text(">", color = Color.White, fontSize = 24.sp, lineHeight = 24.sp)
+                        Text(">", color = Color.White, fontSize = 24.sp)
                     }
                 }
             }
 
-            // Outer fixed scroll area
+            // Scrollable Weekly Calendar View
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(scrollAreaHeight) // same as column content height
+                    .height(scrollAreaHeight)
                     .verticalScroll(rememberScrollState())
             ) {
                 AnimatedContent(
@@ -165,8 +173,7 @@ fun CustomWeekCalendar(fragment: Fragment) {
                             slideInHorizontally(tween(300)) { -it } togetherWith slideOutHorizontally(tween(300)) { it }
                         }.using(SizeTransform(clip = false) { _, _ -> tween(0) })
                     },
-                    modifier = Modifier
-                        .fillMaxSize()
+                    modifier = Modifier.fillMaxSize()
                 ) { weekMillis ->
                     val startOfWeek = Calendar.getInstance().apply {
                         timeInMillis = weekMillis
@@ -178,9 +185,9 @@ fun CustomWeekCalendar(fragment: Fragment) {
                     }
 
                     Row(Modifier.fillMaxSize()) {
-                        // Time column
+                        // Time Column
                         Column(Modifier.width(40.dp)) {
-                            hours.forEach { hour ->
+                            for (hour in hours) {
                                 Box(
                                     modifier = Modifier.height(60.dp).fillMaxWidth(),
                                     contentAlignment = Alignment.Center
@@ -194,7 +201,7 @@ fun CustomWeekCalendar(fragment: Fragment) {
                             }
                         }
 
-                        // 7 day columns
+                        // Day Columns
                         repeat(7) { i ->
                             val day = (startOfWeek.clone() as Calendar).apply { add(Calendar.DAY_OF_WEEK, i) }
                             val isToday = today.get(Calendar.YEAR) == day.get(Calendar.YEAR) &&
@@ -238,16 +245,13 @@ fun CustomWeekCalendar(fragment: Fragment) {
                                     fontWeight = FontWeight.Bold
                                 )
 
-                                hours.forEach {
+                                repeat(24) {
                                     Box(
                                         modifier = Modifier
                                             .fillMaxWidth()
                                             .height(60.dp)
-                                            .background(dayColor),
-                                        contentAlignment = Alignment.Center
-                                    ) {
-                                        Text("")
-                                    }
+                                            .background(dayColor)
+                                    )
                                 }
                             }
                         }

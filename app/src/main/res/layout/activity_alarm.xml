@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:orientation="vertical"
     android:gravity="center"
     android:id="@+id/activity_alarm"
@@ -17,6 +18,17 @@
         android:layout_height="wrap_content"/>
 
     <TextView
+        android:id="@+id/alarmTime"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="00:00"
+        android:textSize="64sp"
+        android:textColor="#FFFFFF"
+        android:layout_marginBottom="24dp"/>
+
+
+
+    <TextView
         android:id="@+id/alarmDescription"
         android:textSize="24sp"
         android:textColor="#CCCCCC"
@@ -30,5 +42,9 @@
         android:layout_width="171dp"
         android:layout_height="80dp"
         android:text="Dismiss"
-        android:textSize="24dp"/>
+        android:textColor="#FFFFFF"
+        android:textSize="24sp"
+        android:background="@drawable/rounded_button" />
+
+
 </LinearLayout>

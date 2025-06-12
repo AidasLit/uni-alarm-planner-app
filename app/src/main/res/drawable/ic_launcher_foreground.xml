@@ -1,15 +1,16 @@
-<vector xmlns:android="http://schemas.android.com/apk/res/android"
-    android:width="108dp"
-    android:height="108dp"
-    android:viewportWidth="24"
-    android:viewportHeight="24"
-    android:tint="#000000">
-  <group android:scaleX="0.58"
-      android:scaleY="0.58"
-      android:translateX="5.04"
-      android:translateY="5.04">
-    <path
-        android:fillColor="@android:color/white"
-        android:pathData="M17.6,9.48l1.84,-3.18c0.16,-0.31 0.04,-0.69 -0.26,-0.85c-0.29,-0.15 -0.65,-0.06 -0.83,0.22l-1.88,3.24c-2.86,-1.21 -6.08,-1.21 -8.94,0L5.65,5.67c-0.19,-0.29 -0.58,-0.38 -0.87,-0.2C4.5,5.65 4.41,6.01 4.56,6.3L6.4,9.48C3.3,11.25 1.28,14.44 1,18h22C22.72,14.44 20.7,11.25 17.6,9.48zM7,15.25c-0.69,0 -1.25,-0.56 -1.25,-1.25c0,-0.69 0.56,-1.25 1.25,-1.25S8.25,13.31 8.25,14C8.25,14.69 7.69,15.25 7,15.25zM17,15.25c-0.69,0 -1.25,-0.56 -1.25,-1.25c0,-0.69 0.56,-1.25 1.25,-1.25s1.25,0.56 1.25,1.25C18.25,14.69 17.69,15.25 17,15.25z"/>
-  </group>
+<vector xmlns:android="http://schemas.android.com/apk/res/android" xmlns:aapt="http://schemas.android.com/aapt" android:viewportWidth="200" android:viewportHeight="200" android:width="200dp" android:height="200dp">
+    <path android:pathData="M40 40H160A20 20 0 0 1 180 60V160A20 20 0 0 1 160 180H40A20 20 0 0 1 20 160V60A20 20 0 0 1 40 40Z" android:fillColor="#F9F2E7"/>
+    <path android:pathData="M30 40H170A10 10 0 0 1 180 50V70A10 10 0 0 1 170 80H30A10 10 0 0 1 20 70V50A10 10 0 0 1 30 40Z" android:fillColor="#1E73BE"/>
+    <path android:pathData="M60 40A10 10 0 0 1 40 40A10 10 0 0 1 60 40Z" android:fillColor="#1E73BE"/>
+    <path android:pathData="M190 40A20 20 0 0 1 150 40A20 20 0 0 1 190 40Z" android:fillColor="#F44E2A"/>
+    <path android:pathData="M44 90H56A4 4 0 0 1 60 94V106A4 4 0 0 1 56 110H44A4 4 0 0 1 40 106V94A4 4 0 0 1 44 90Z" android:fillColor="#E0D7C9"/>
+    <path android:pathData="M74 90H86A4 4 0 0 1 90 94V106A4 4 0 0 1 86 110H74A4 4 0 0 1 70 106V94A4 4 0 0 1 74 90Z" android:fillColor="#E0D7C9"/>
+    <path android:pathData="M104 90H116A4 4 0 0 1 120 94V106A4 4 0 0 1 116 110H104A4 4 0 0 1 100 106V94A4 4 0 0 1 104 90Z" android:fillColor="#E0D7C9"/>
+    <path android:pathData="M44 120H56A4 4 0 0 1 60 124V136A4 4 0 0 1 56 140H44A4 4 0 0 1 40 136V124A4 4 0 0 1 44 120Z" android:fillColor="#E0D7C9"/>
+    <path android:pathData="M74 120H86A4 4 0 0 1 90 124V136A4 4 0 0 1 86 140H74A4 4 0 0 1 70 136V124A4 4 0 0 1 74 120Z" android:fillColor="#E0D7C9"/>
+    <path android:pathData="M104 120H116A4 4 0 0 1 120 124V136A4 4 0 0 1 116 140H104A4 4 0 0 1 100 136V124A4 4 0 0 1 104 120Z" android:fillColor="#E0D7C9"/>
+    <path android:pathData="M44 150H56A4 4 0 0 1 60 154V166A4 4 0 0 1 56 170H44A4 4 0 0 1 40 166V154A4 4 0 0 1 44 150Z" android:fillColor="#E0D7C9"/>
+    <path android:pathData="M74 150H86A4 4 0 0 1 90 154V166A4 4 0 0 1 86 170H74A4 4 0 0 1 70 166V154A4 4 0 0 1 74 150Z" android:fillColor="#E0D7C9"/>
+    <path android:pathData="M100 120a20 20 0 0 1 20 20v5h-40v-5a20 20 0 0 1 20 -20z" android:fillColor="#F87C1E"/>
+    <path android:pathData="M106 150A6 6 0 0 1 94 150A6 6 0 0 1 106 150Z" android:fillColor="#F87C1E"/>
 </vector>

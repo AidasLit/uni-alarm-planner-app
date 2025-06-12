@@ -254,6 +254,7 @@ fun SettingsScreen(ringtonePickerLauncher: androidx.activity.result.ActivityResu
 
 @Composable
 fun TimeFormatSetting(prefs: android.content.SharedPreferences, textColor: Color) {
+    val context = LocalContext.current
     var is24h by remember { mutableStateOf(prefs.getBoolean("use24Hour", true)) }
 
     Column {
@@ -266,6 +267,7 @@ fun TimeFormatSetting(prefs: android.content.SharedPreferences, textColor: Color
                 onClick = {
                     is24h = false
                     prefs.edit().putBoolean("use24Hour", false).apply()
+                    Toast.makeText(context, "Switched to 12-hour format", Toast.LENGTH_SHORT).show()
                 },
                 colors = RadioButtonDefaults.colors(selectedColor = Color.Green)
             )
@@ -278,6 +280,7 @@ fun TimeFormatSetting(prefs: android.content.SharedPreferences, textColor: Color
                 onClick = {
                     is24h = true
                     prefs.edit().putBoolean("use24Hour", true).apply()
+                    Toast.makeText(context, "Switched to 24-hour format", Toast.LENGTH_SHORT).show()
                 },
                 colors = RadioButtonDefaults.colors(selectedColor = Color.Green)
             )
@@ -285,6 +288,7 @@ fun TimeFormatSetting(prefs: android.content.SharedPreferences, textColor: Color
         }
     }
 }
+
 
 @Composable
 fun SoundPickerSetting(
@@ -312,8 +316,9 @@ fun SoundPickerSetting(
         Text("Select Ringtone:", fontSize = 20.sp, fontWeight = FontWeight.Bold, color = textColor)
         Spacer(modifier = Modifier.height(16.dp))
 
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Button(onClick = {
+        // Pick Sound Button
+        Button(
+            onClick = {
                 val intent = Intent(RingtoneManager.ACTION_RINGTONE_PICKER).apply {
                     putExtra(RingtoneManager.EXTRA_RINGTONE_TYPE, RingtoneManager.TYPE_ALARM)
                     putExtra(RingtoneManager.EXTRA_RINGTONE_TITLE, "Select Alarm Sound")
@@ -323,53 +328,53 @@ fun SoundPickerSetting(
                     }
                 }
                 ringtonePickerLauncher.launch(intent)
-            }, colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF516277))) {
-                Text("Pick Sound")
-            }
+            },
+            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF516277))
+        ) {
+            Text("Pick Sound")
+        }
 
-            Spacer(modifier = Modifier.width(16.dp))
+        Spacer(modifier = Modifier.height(16.dp))
 
+        // Play / Stop Button (below)
+        val buttonColor by animateColorAsState(
+            targetValue = if (isPlaying) Color.Red else Color(0xFF516277),
+            animationSpec = tween(300),
+            label = "buttonColor"
+        )
 
+        val infiniteTransition = rememberInfiniteTransition(label = "vibration")
+        val rotation by infiniteTransition.animateFloat(
+            initialValue = -10f,
+            targetValue = 10f,
+            animationSpec = infiniteRepeatable(
+                animation = tween(durationMillis = 100, easing = LinearEasing),
+                repeatMode = RepeatMode.Reverse
+            ),
+            label = "rotationAnim"
+        )
 
-            val buttonColor by animateColorAsState(
-                targetValue = if (isPlaying) Color.Red else Color(0xFF516277),
-                animationSpec = tween(300),
-                label = "buttonColor"
-            )
-
-            val infiniteTransition = rememberInfiniteTransition(label = "vibration")
-            val rotation by infiniteTransition.animateFloat(
-                initialValue = -10f,
-                targetValue = 10f,
-                animationSpec = infiniteRepeatable(
-                    animation = tween(durationMillis = 100, easing = LinearEasing),
-                    repeatMode = RepeatMode.Reverse
-                ),
-                label = "rotationAnim"
-            )
-
-            Button(
-                onClick = {
-                    if (isPlaying) {
-                        ringtone?.stop()
-                        isPlaying = false
-                    } else {
-                        currentUri?.let { uri ->
-                            ringtone = RingtoneManager.getRingtone(context, uri)
-                            ringtone?.play()
-                            isPlaying = true
-                        }
+        Button(
+            onClick = {
+                if (isPlaying) {
+                    ringtone?.stop()
+                    isPlaying = false
+                } else {
+                    currentUri?.let { uri ->
+                        ringtone = RingtoneManager.getRingtone(context, uri)
+                        ringtone?.play()
+                        isPlaying = true
                     }
-                },
-                enabled = currentUri != null,
-                colors = ButtonDefaults.buttonColors(containerColor = buttonColor),
-                modifier = Modifier.graphicsLayer {
+                }
+            },
+            enabled = currentUri != null,
+            colors = ButtonDefaults.buttonColors(containerColor = buttonColor),
+            modifier = Modifier
+                .graphicsLayer {
                     rotationZ = if (isPlaying) rotation else 0f
                 }
-            ) {
-                Text(if (isPlaying) "Stop" else "Play")
-            }
-
+        ) {
+            Text(if (isPlaying) "Stop" else "Play")
         }
 
         Spacer(modifier = Modifier.height(16.dp))
@@ -382,8 +387,10 @@ fun SoundPickerSetting(
 
 
 
+
 @Composable
 fun AlarmDurationSetting(prefs: SharedPreferences, textColor: Color) {
+    val context = LocalContext.current
     val durations = listOf(5, 10, 15, 30, 60)
     val durationsLabels = listOf("5 seconds", "10 seconds", "15 seconds", "30 seconds", "1 minute")
     var selectedIndex by remember {
@@ -392,7 +399,7 @@ fun AlarmDurationSetting(prefs: SharedPreferences, textColor: Color) {
 
     var expanded by remember { mutableStateOf(false) }
     var pressed by remember { mutableStateOf(false) }
-    val scope = rememberCoroutineScope()  // ✅ Needed to launch delay
+    val scope = rememberCoroutineScope()
 
     val scale by animateFloatAsState(
         targetValue = if (pressed) 1.05f else 1f,
@@ -441,6 +448,11 @@ fun AlarmDurationSetting(prefs: SharedPreferences, textColor: Color) {
                             selectedIndex = index
                             prefs.edit().putInt("alarmDuration", durations[index]).apply()
                             expanded = false
+                            Toast.makeText(
+                                context,
+                                "Alarm duration set to ${durationsLabels[index]}",
+                                Toast.LENGTH_SHORT
+                            ).show()
                         }
                     )
                 }
@@ -449,10 +461,12 @@ fun AlarmDurationSetting(prefs: SharedPreferences, textColor: Color) {
     }
 }
 
+
 @Composable
 fun VibrationStrengthSetting(prefs: SharedPreferences, textColor: Color) {
+    val context = LocalContext.current
     val strengths = listOf("Off", "Low", "Medium", "Strong")
-    val values = listOf(0L, 100L, 300L, 600L) // durations
+    val values = listOf(0L, 100L, 300L, 600L)
     var selectedIndex by remember {
         mutableStateOf(values.indexOf(prefs.getLong("vibrationStrength", 300L)))
     }
@@ -470,6 +484,7 @@ fun VibrationStrengthSetting(prefs: SharedPreferences, textColor: Color) {
             ) {
                 Text(strengths[selectedIndex])
             }
+
             DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
                 strengths.forEachIndexed { index, label ->
                     DropdownMenuItem(
@@ -478,6 +493,11 @@ fun VibrationStrengthSetting(prefs: SharedPreferences, textColor: Color) {
                             selectedIndex = index
                             prefs.edit().putLong("vibrationStrength", values[index]).apply()
                             expanded = false
+                            Toast.makeText(
+                                context,
+                                "Vibration strength set to ${label}",
+                                Toast.LENGTH_SHORT
+                            ).show()
                         }
                     )
                 }
@@ -485,6 +505,7 @@ fun VibrationStrengthSetting(prefs: SharedPreferences, textColor: Color) {
         }
     }
 }
+
 
 
 
